@@ -1,0 +1,7 @@
+PKG lwt
+PKG mirage
+PKG mirage-unix
+PKG mirage-console-unix
+PKG mirage-types
+
+EXT lwt
