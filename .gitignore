@@ -1,5 +1,16 @@
-_build/
-log
+
+# mirage
+Makefile
 main.ml
 console.xl
-Makefile
+log
+_build/
+*.native
+
+# testing code
+dict_tester
+dictionary.cmi
+dict_test.cmi
+*.cmo
+
+
