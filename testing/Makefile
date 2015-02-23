@@ -3,7 +3,7 @@ dictionary:
 	cd .. && ocamlc -c dictionary.ml
 
 tester: dictionary
-	mv ../dictionary.{cmi,cmo} .
+	mv ../dictionary.cmi ../dictionary.cmo .
 	ocamlc dictionary.cmo dict_test.ml -o tester
 
 test: tester

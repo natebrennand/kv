@@ -8,7 +8,7 @@ _build/
 *.native
 
 # testing code
-dict_tester
+testing/tester
 dictionary.cmi
 dict_test.cmi
 *.cmo
