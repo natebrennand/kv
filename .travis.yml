@@ -4,4 +4,4 @@ env:
 before_script:
     - bash -ex config/travis_install.sh
 script:
-    - ./test_dict.sh
+    - cd testing && make test
