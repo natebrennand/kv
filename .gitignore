@@ -1,0 +1,10 @@
+resp/*.xl
+resp/*.xml
+resp/_build
+resp/Makefile
+resp/log
+resp/*.xe
+resp/main.ml
+resp/main.native
+resp/mir-network
+*.swp
