@@ -9,7 +9,8 @@ let test_suite ht t =
 
     let () = add key1 3 in
     let () = add "b" 3 in
-    let () = assert (get key1 = 3) in
+    let () = assert (get key1 = Some 3) in
+    let () = assert (get "abc" = None) in
     Format.printf "tests passed for %s\n" t
 
 
