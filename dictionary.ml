@@ -1,4 +1,3 @@
-
 (* String_tbl is a hash table with a string as the key  *)
 module String_tbl = Hashtbl.Make(struct
     type t = string
@@ -17,15 +16,20 @@ module type Dict_type = sig
 
     type tbl = String_tbl of value
     val set : tbl -> string -> value
-    val get : (tbl -> string) -> value
+    val get : (tbl -> string) -> value option
 
 end
-
 
 
 module Dict  = struct
     let create size = String_tbl.create size
     let set st k v  = String_tbl.replace st k v
-    let get st k    = String_tbl.find st k
-end
 
+    let get st k =
+        try
+            let data = String_tbl.find st k in
+            Some data
+        with
+            Not_found -> None
+
+end
