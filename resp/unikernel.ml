@@ -42,7 +42,7 @@ module Main (C: V1_LWT.CONSOLE) (S: V1_LWT.STACKV4) = struct
             let cmd = String.sub s 8 3
             in
             match cmd with
-               | "get" -> let varlength = String.sub s 14 ((String.index_from s 14 '\r') - 14) in
+               | "GET" -> let varlength = String.sub s 14 ((String.index_from s 14 '\r') - 14) in
                           let varname = String.sub s ((String.index_from s 14 '\r')+2) (int_of_string varlength) in
                           let resp =
                             try
@@ -56,7 +56,7 @@ module Main (C: V1_LWT.CONSOLE) (S: V1_LWT.STACKV4) = struct
                            | `Ok () -> respond c flow
                            | `Eof -> report_and_close c flow "Connection closure initated."
                            | `Error _ -> report_and_close c flow "Connection error during writing; closing.")
-               | "set" -> let varlength = String.sub s 14 ((String.index_from s 14 '\r') - 14) in
+               | "SET" -> let varlength = String.sub s 14 ((String.index_from s 14 '\r') - 14) in
                           let varlength_int = int_of_string varlength in
                           let varname = String.sub s ((String.index_from s 14 '\r')+2) varlength_int in
                           let datastart = (14 + String.length varlength + 2 + varlength_int + 3) in
