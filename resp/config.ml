@@ -11,8 +11,8 @@ let net =
 
 let dhcp =
   try match Sys.getenv "ADDR" with
-    | "dhcp"   -> `Dhcp
-    | "static" -> `Static
+    | "dhcp"       -> `Dhcp
+    | "static" | _ -> `Static
   with Not_found -> `Dhcp
 
 let stack console =
