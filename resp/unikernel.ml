@@ -42,11 +42,12 @@ module Main (C: V1_LWT.CONSOLE) (S: V1_LWT.STACKV4) = struct
             let cmd = String.sub s 8 3
             in
             match cmd with
-               | "get" -> let varname = String.sub s 17 ((String.length s) - 19) in
+               | "get" -> let varlength = String.sub s 14 ((String.index_from s 14 '\r') - 14) in
+                          let varname = String.sub s ((String.index_from s 14 '\r')+2) (int_of_string varlength) in
                           let resp =
                             try
                               match (Hashtbl.find ht varname) with
-                                | data -> (Printf.sprintf "$%d\r\n%s\r\n" (String.length varname) varname)
+                                | data -> (Printf.sprintf "$%d\r\n%s\r\n" (String.length data) data)
                             with
                                Not_found -> (Printf.sprintf "$-1\r\n")
                           in
@@ -55,13 +56,20 @@ module Main (C: V1_LWT.CONSOLE) (S: V1_LWT.STACKV4) = struct
                            | `Ok () -> respond c flow
                            | `Eof -> report_and_close c flow "Connection closure initated."
                            | `Error _ -> report_and_close c flow "Connection error during writing; closing.")
-               | "set" -> let varname = String.sub s 4 ((String.length s) - 6) in
-                          S.TCPV4.write flow (make_struct (Printf.sprintf "SET: P%sP O%sO MMM \n" cmd varname))
+               | "set" -> let varlength = String.sub s 14 ((String.index_from s 14 '\r') - 14) in
+                          let varlength_int = int_of_string varlength in
+                          let varname = String.sub s ((String.index_from s 14 '\r')+2) varlength_int in
+                          let datastart = (14 + String.length varlength + 2 + varlength_int + 3) in
+                          let datalength = String.sub s datastart ((String.index_from s datastart '\r') - datastart) in
+                          let datalength_int = int_of_string datalength in
+                          let data = String.sub s ((String.index_from s datastart '\r')+2) datalength_int in
+                            Hashtbl.add ht varname data; 
+                            S.TCPV4.write flow (make_struct (Printf.sprintf "+OK\r\n" ))
                            >>= (function
                            | `Ok () -> respond c flow
                            | `Eof -> report_and_close c flow "Connection closure initated."
                            | `Error _ -> report_and_close c flow "Connection error during writing; closing.")
-               | _ -> S.TCPV4.write flow (make_struct (Printf.sprintf "Unrecognized command: %s, whole thing: %sXXX\n" cmd s))
+               | _ -> S.TCPV4.write flow (make_struct (Printf.sprintf "Unrecognized command: %s, the whole thing: XXX%sXXX\n" cmd s))
                            >>= (function
                            | `Ok () -> respond c flow
                            | `Eof -> report_and_close c flow "Connection closure initated."
