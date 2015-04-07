@@ -4,5 +4,7 @@
 *.log
 *.fdb_latexmk
 *.pdf
+*.bbl
+*.blg
 
 
