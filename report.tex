@@ -15,7 +15,8 @@
 \thispagestyle{empty}
 
 \begin{abstract}
-  Traditional cloud infrastructure models typically consists of a cluster of full stack virtual machines running a standard OS kernel (usually Linux variant) on top of hardware that's managed with a hypervisor. This provides a simple and consistent platform to develop against but there is a lot of resource overhead around virtualizing all of these machines.
+  Traditional cloud infrastructure models typically consists of a cluster of full stack virtual machines running a standard OS kernel (usually Linux variant) on top of hardware that's managed with a hypervisor.
+  This provides a simple and consistent platform to develop against but there is a lot of resource overhead around virtualizing all of these machines.
   Key-value datastores are a common component of web infrastructure.
   We've designed a MirageOS\cite{mirage} unikernel implementation of the popular Redis\cite{redis} key-value store that allows fast creation and deployment of the datastore as well as ease scaling up the allocated resources.
   We describe the advantages and disadvantages that come with such a system.
@@ -49,7 +50,8 @@ Redis, short for Remote Dictionary server, is a key-value store software that is
 
 \section{Design and Implementation}
 
-The MirageOS unikernel library operating system is leveraged to provide a correct and compact implementation. MirageOS leverages the Ocaml language to provide type safety at a low level, this creates many guarantees in terms of correctness.
+The MirageOS unikernel library operating system is leveraged to provide a correct and compact implementation.
+MirageOS leverages the Ocaml language to provide type safety at a low level, this creates many guarantees in terms of correctness.
 GET Operation
 SET Operation
 Evaluation
@@ -68,11 +70,19 @@ SET Operation
 
 \section{Related Work}
 
-HaLVM\cite{halvm} and LING\cite{ling} are both alternatives to Mirage OS, using Haskell and Erlang respectively as the basis of their unikernel efforts. With all of these, you are limited to one functional language and the image is then built to run on top of the Xen hypervisor. Mirage OS and LING focuses on performance and predictability while HalVM focuses more on elegant compositional semantics using Haskell. Low level libraries are being implemented for the platforms in their native code, so while the work is ongoing the level of support varies. Mirage OS for example has a more mature SSL library and better support for encrypted connections then the other platforms.
+HaLVM\cite{halvm} and LING\cite{ling} are both alternatives to Mirage OS, using Haskell and Erlang respectively as the basis of their unikernel efforts.
+With all of these, you are limited to one functional language and the image is then built to run on top of the Xen hypervisor.
+Mirage OS and LING focuses on performance and predictability while HalVM focuses more on elegant compositional semantics using Haskell.
+Low level libraries are being implemented for the platforms in their native code, so while the work is ongoing the level of support varies.
+Mirage OS for example has a more mature SSL library and better support for encrypted connections then the other platforms.
 
-OSv\cite{osv} is another variant to the special-purpose operating system using the library OS paradigm. In OSv everything runs in the kernel space and it's built to run as guest on top of a virtual machine. However, it contains necessary functionality to run Java and POSIX applications which allows OSv to run some existing codebases and get some of the performance benefit Mirage enjoys. Mirage however focuses on a toolkit to assemble new unikernel application without specific domain knowledge in kernel programming for example.
+OSv\cite{osv} is another variant to the special-purpose operating system using the library OS paradigm.
+In OSv everything runs in the kernel space and it's built to run as guest on top of a virtual machine.
+However, it contains necessary functionality to run Java and POSIX applications which allows OSv to run some existing codebases and get some of the performance benefit Mirage enjoys.
+Mirage however focuses on a toolkit to assemble new unikernel application without specific domain knowledge in kernel programming for example.
 
-Arrakis\cite{arrakis}, SPIN\cite{spin} and Exokernel\cite{exokernel} all reduce shared kernel components and allow each application to have customized operating system management, achieving some of the increased performance benefit of Mirage OS without tying you to one language runtime.  Arrakis in particular benefits from increased support for virtualization in new hardware, which allows it to effectively run all applications in kernel space and achieve seperation using hardware instructions, similar to how Mirage OS achieves seperation through Xen.
+Arrakis\cite{arrakis}, SPIN\cite{spin} and Exokernel\cite{exokernel} all reduce shared kernel components and allow each application to have customized operating system management, achieving some of the increased performance benefit of Mirage OS without tying you to one language runtime.
+Arrakis in particular benefits from increased support for virtualization in new hardware, which allows it to effectively run all applications in kernel space and achieve seperation using hardware instructions, similar to how Mirage OS achieves seperation through Xen.
 
 
 \bibliographystyle{abbrv}
