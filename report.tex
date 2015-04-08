@@ -73,6 +73,8 @@ SET Operation
 
 We performed all of our evaulations on a dedicated 8\-core HP ProLiant rack server with 16 GB RAM available.
 Our Xen hypervisor installation is coordinated by a Ubuntu Server 14.04 host that serves as the management domain to manage the other hosts running on the Hypervisor.
+The Mirage installation was modified to use Redis' communication protocols so that we could use the same benchmark for all test setups. The benchmark was run using 50 parallel clients sending a 3-byte payload. 
+The Redis setups were given ten thousands requests as part of their benchmark, while the Mirage setups on Xen were given five hundred, one thousand, or ten thousand requests.
 
 
 \subsection{Running Mirage}
@@ -81,17 +83,43 @@ When a Mirage OS unikernel is configured in Xen mode, both the unikernel image a
 With these, a unikernel can be easily launched using the xl Xen management tool.
 Due to the small size of the image, this is a quick process where the Mirage image configures itself when started by xl.
 
-
-
 \subsection{Network Overhead}
-% @MISHA
+
+On examining the throughput and the completion times for requests between running the benchmark between two hosts, we found that there was a significant overhead imposed by network communications. For SET operations there was an increase of 42\% in execution time and GET operations saw a similar 43\% increase in execution time.
+The benchmark results for the Mirage OS installation were found to have throughputs an order of magnitude lower than expected. 
+Upon further testing and examination of code, it found that that the Mirage systems were not properly handling multiple simultaneous clients, resulting in a very low throughput which was noticed in further tests.
+
 
 \subsection{Mirage \- UNIX}
-% @MISHA
+
+Three different benchmarks setups were tested, making either five hundred, one thousand, or ten thousand total requests. 
+Similarly to the tests run on the Mirage installations that were on top of Xen, the throughput was also an order of magnitude lower when compared to Redis. 
+Strangely, the Unix-based setups did much better for the five hundred and one thousand request trials, but did extremely poorly for the ten thousand request setup.
 
 \subsection{Throughput Performance}
-% @MISHA
 
+\begin{figure*}[ht]
+  \centering
+  \caption{Average Throughputs}
+  \includegraphics[width=1.0\textwidth]{images/throughput}
+\end{figure*}
+
+\begin{table}[h]
+\begin{tabular}{lll}
+Average Throughput & SET Operation & GET Operation \\
+Native & 37766.142 & 37792.576 \\
+Host-to-Host & 26571.512 & 26348.028 \\
+Mirage on Xen & 2188.18 & 2222.22 \\
+Unix (500) & 3401.36 & 3787.88 \\
+Unix (1000) & 3344.48 & 2024.29 \\
+Unix (10000) & 580.55 & 338.26
+\end{tabular}
+\caption{Average throughputs (requests per second)}
+\label{my-label}
+\end{table}
+
+Overall, the Mirage systems showed markedly worse throughput performance, at a staggering order of magnitude lower than the baseline Redis benchmarks. 
+Corrections to the Mirage coding are underway so that a fair benchmark comparison can be made and a provide a more representative view.
 
 \section{Conclusion}
 % @NATE
