@@ -81,8 +81,7 @@ Also, with the lack of an operating system interface layer, Mirage applications 
   \includegraphics[width=0.5\textwidth]{images/design}
 \end{figure}
 
-OCaml is an expressive functional systems programming language.
-Thanks to a simple runtime, OCaml was a good fit for the Mirage project to reimplement the runtime in an image that would run on Xen.
+Thanks to a simple runtime, OCaml, an expressive functional systems programming language, was a good fit for the Mirage project to reimplement the runtime in an image that would run on Xen.
 The strictness of OCaml's type system ensures that programs are respect with regard to variable datatypes prior to compilation, because of this strictness the executable is able to shed all type checking which yields fast native code with performance comparable to C.
 
 As highlighted in figure 1, unikernels have a greatly reduced overhead when accessing resources relative to an application running on Linux.
