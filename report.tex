@@ -14,27 +14,35 @@
 \maketitle
 \thispagestyle{empty}
 
+
 \begin{abstract}
 Traditional web infrastructure models consist of a cluster of heavyweight full stack virtual machines usually running a variant of Linux.
-This provides a simple consistent platform to develop against but it has many downfalls in the resource overhead of running virtual machines.
+This provides a simple consistent platform for developers to write their applications against but it has many downfalls in the resource overhead of running virtual machines.
 Key-value datastores are a common component of web insfrastructure.
-We've designed a MirageOS\cite{mirage} unikernel implementation of the popular Redis\cite{redis} key-value store that allows fast creation and deployment of the datastore as well as ease scaling up the allocated resources.
+We've designed a MirageOS\cite{mirage} unikernel implementation of the popular Redis\cite{redis} in-memory key-value store that allows fast creation and deployment of the datastore as well as ease scaling up the allocated resources.
+Applications developed with MirageOS can be deployed directly on the Xen hypervisor.
 We describe the advantages and disadvantages that come with such a system.
 We highlight the performance characteristics of this new approach in comparison to Redis.
+
+Preliminary results show comparable performance.
+We expect with more profiling we can identify the hotspots in our codebase and garner better performance from the Kayvee implementation.
 \end{abstract}
+
 
 \section{Introduction}
 In-memory key-value datastores are used in a wide variety of applications for ease of use and the high throughput.
 While these applications are known for their great performance, research has shown that networked applications striving for low latency, such as Redis, are actually subjected to a high amount of overhead from utilizing Linux's networking stack.\cite{arrakis}
-This issue is amplified by the lack of stability when running on Linux itself which is prone to performance dips when the resource scheduler is not coordinated.
+This issue is amplified by the lack of stability in allocated resources when running on Linux itself which is prone to performance dips when the resource scheduler is not coordinated.
 
 We believe that the approach of moving the key-value datastore to a unikernel implementation will yield greater and more reliable performance.
 A unikernel is a specialzed application capable of running directly on top of bare-metal or a hypervisor without a host operating system.
 The unikernel approach lacks many of the performance issues plaguing Redis that cannot be resolved at the application level.
-We build on top of the MirageOS\cite{mirage}, an OCaml based library operating system that provides type-safe networking libraries.
+We build on top of the MirageOS\cite{mirage}, an OCaml based library operating system.
+MirageOS provides correctness due to the strongly-typed nature of OCaml, this yields very reliable code.
 
-We measure the performance characteristics of Redis in multiple situations, networked and on-host, to yield a direct comparison to our implementation, Kayvee.
+We measure the performance characteristics of Redis in multiple situations: networked and on-host, to yield a direct comparison to our implementation, Kayvee.
 Kayvee speaks the Redis Serialization Protocol\cite{redis-protocol}, RESP, which makes Kayvee a drop in replacement for Redis in any deployment utilizing the Xen Hypervisor.
+We hope this compatibility will allow Kayvee to help establish unikernels as a viable piece of web application infrastructure.
 
 
 \section{Background}
