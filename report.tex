@@ -75,6 +75,10 @@ Thanks to a simple runtime, OCaml was a good fit for the Mirage project to reimp
 The strictness of OCaml's type system ensures that programs are respect with regard to variable datatypes prior to compilation, because of this strictness the executable is able to shed all type checking which yields fast native code with performance comparable to C.
 
 As highlighted in figure 1, unikernels have a greatly reduced overhead when accessing resources relative to an application running on Linux.
+This approach brings some great benefits like zero\-copy IO and no scheduler\-induced delay in response.
+These performance improvements are important in high throughput and low latency applications like key\-value datastores.
+However, this approach does have downfalls such as Mirage's limit to a single virtual machine per core; this limitation means that certain applications that require access to multiple physical threads will not fit the Mirage programming model.
+For applications that do not need multiple physical threads but need asynchronous IO, Mirage has a lightweight cooperative threading, LWT, library that provides simple constructs for asynchronous code.
 
 
 \subsection{Related Work}
