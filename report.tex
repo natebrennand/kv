@@ -48,6 +48,20 @@ We hope this compatibility will allow Kayvee to help establish unikernels as a v
 \section{Background}
 
 
+
+\subsection{Xen Hypervisor}
+
+The Xen hypervisor is a tool to allow a host to simultaneously host many virtual machines on the same physical host.
+Xen allows performant configurations of 100's of virtual machines running in parallel on virtualized resources.
+Standard operating systems can be run on Xen with minimal changes to the codebase.
+For applications running on a host, such as Linux, Xen has no impact on the implementation because all of the integrations are completed at the OS layer.
+
+Runninggs
+
+
+\subsection{Mirage OS}
+
+
 \begin{figure}[ht]
   \centering
   \caption{Mirage OS architecture}
@@ -138,7 +152,7 @@ Especially as it is the early days there is not a lot of community support surro
 
 We performed all of our evaulations on a dedicated 8\-core HP ProLiant rack server with 16 GB RAM available.
 Our Xen hypervisor installation is coordinated by a Ubuntu Server 14.04 host that serves as the management domain to manage the other hosts running on the Hypervisor.
-The Mirage installation was modified to use Redis' communication protocols so that we could use the same benchmark for all test setups. The benchmark was run using 50 parallel clients sending a 3-byte payload.
+The Mirage installation was modified to use Redis's communication protocols so that we could use the same benchmark for all test setups. The benchmark was run using 50 parallel clients sending a 3-byte payload.
 The Redis setups were given ten thousands requests as part of their benchmark, while the Mirage setups on Xen were given five hundred, one thousand, or ten thousand requests.
 
 
@@ -184,8 +198,8 @@ Unix (10000) & 580.55 & 338.26
 \label{my-label}
 \end{table}
 
-Overall, the Mirage systems showed markedly worse throughput performance, at a staggering order of magnitude lower than the baseline Redis benchmarks. 
-Corrections to the Mirage coding are underway so that a fair benchmark comparison can be made and a provide a more representative view.
+Overall, the Mirage systems showed markedly worse throughput performance, at a staggering order of magnitude lower than the baseline Redis benchmarks.
+Corrections to the Keyvee implementation are underway so that a fair benchmark comparison can be made and a provide a more representative view.
 
 \section{Conclusion}
 % @NATE
