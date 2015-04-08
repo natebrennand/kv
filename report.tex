@@ -59,7 +59,14 @@ For applications running on a host, such as Linux, Xen has no impact on the impl
 
 \subsection{Redis}
 
-Redis is a data structure server. Working set and all data is in-memory at all times and there is optional durability, using append-only log files. Redis is the most popular key-value store in industry\cite{dbengines}. It has various applications in server infrastructure, including caching, inter-server communication, queues etc. Redis maps keys to numerous types of values, including strings (supported by Keyvee) as well as lists of strings, sets of strings, hash tables etc. Redis has support for master-slave replication, and allows slaves to be masters to other slaves, enabling Redis to implement single-rooted replication tree. When durability is not needed, Redis is very performant although according to tests it has been shown to spend upward of 84\% of it's processing in kernel space, meaning there is some space to improve it's performance \cite{latency}.
+Redis is a data structure server.
+Working set and all data is in-memory at all times and there is optional durability, using append-only log files.
+Redis is the most popular key-value store in industry\cite{dbengines}.
+It has various applications in server infrastructure, including caching, inter-server communication, queues etc.
+Redis maps keys to numerous types of values, including strings (supported by Keyvee) as well as lists of strings, sets of strings, hash tables etc.
+Redis has support for master-slave replication, and allows slaves to be masters to other slaves, enabling Redis to implement single-rooted replication tree.
+When durability is not needed, Redis is very performant although according to tests it has been shown to spend upward of 84\% of it's processing in kernel space, meaning there is some space to improve it's performance \cite{latency}.
+
 
 \subsection{Mirage OS}
 
@@ -211,8 +218,12 @@ Overall, the Mirage systems showed markedly worse throughput performance, at a s
 Corrections to the Keyvee implementation are underway so that a fair benchmark comparison can be made and a provide a more representative view.
 
 \section{Conclusion}
-% @NATE
-In this paper we described the implementation and evaluation of our unikernel key-value store, Keyvee. Our efforts are concentrated around implementing a subset of Redis's functionality using OCaml and the Mirage OS toolchain. We then evaluated our implementation and compared it with Redis using Redis' benchmarking tool. Initial results revealed that, even when taking into account networking overhead, our unikernel implementation performed extremely poorly in both a Xen enviroment and a Unix installed environment. The main source of the low throughput was identified as an issue with handling the TCP clients used for benchmarking, resulting in a loss of parallelization. A fix is currently being developed and will be tested shortly to provide a better image of Keyvee's performance.
+In this paper we described the implementation and evaluation of our unikernel key-value store, Keyvee.
+Our efforts are concentrated around implementing a subset of Redis's functionality using OCaml and the Mirage OS toolchain.
+We then evaluated our implementation and compared it with Redis using Redis's benchmarking tool.
+Initial results revealed that, even when taking into account networking overhead, our unikernel implementation performed extremely poorly in both a Xen enviroment and a Unix installed environment.
+The main source of the low throughput was identified as an issue with handling the TCP clients used for benchmarking, resulting in a loss of parallelization.
+A fix is currently being developed and will be tested shortly to provide a better image of Keyvee's performance.
 
 
 \section{Acknowledgements}
