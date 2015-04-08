@@ -59,6 +59,10 @@ For applications running on a host, such as Linux, Xen has no impact on the impl
 
 \subsection{Mirage OS}
 
+Mirage OS is an OCaml based library operating system that compiles to a Xen hypervisor image.
+This approach yields several performance and implementation benefits.
+Mirage applications are entirely type-safe due to the strong typing of OCaml, they also have a very compact size due to the lack of structural libraries that must be included.
+Also, with the lack of an operating system interface layer, Mirage applications achieve top-notch performance as there is no additional layer in the IO pipeline or scheduler to delay the application's execution.
 
 \begin{figure}[ht]
   \centering
@@ -66,17 +70,11 @@ For applications running on a host, such as Linux, Xen has no impact on the impl
   \includegraphics[width=0.5\textwidth]{images/design}
 \end{figure}
 
-The unikernel concept was first outlined
+OCaml is an expressive functional systems programming language.
+Thanks to a simple runtime, OCaml was a good fit for the Mirage project to reimplement the runtime in an image that would run on Xen.
+The strictness of OCaml's type system ensures that programs are respect with regard to variable datatypes prior to compilation, because of this strictness the executable is able to shed all type checking which yields fast native code with performance comparable to C.
 
-Today there are server operating systems developed for cloud computing that based on the concept of unikernels. MirageOS is a library operating system written in Ocaml that is commonly used for constructing unikernels.
-
-(What are key-value stores for?)
-
-Redis, short for Remote Dictionary server, is a key-value store software that is commonly used in distributed systems on virtualized operating systems.
-It features ().
-However, this software is generally run atop a full operating system installation, which incurs a certain degree of overhead as discussed previously.
-While the OSv operating system can support Redis, it does not function optimally.
-
+As highlighted in figure 1, unikernels have a greatly reduced overhead when accessing resources relative to an application running on Linux.
 
 
 \subsection{Related Work}
