@@ -80,6 +80,11 @@ These performance improvements are important in high throughput and low latency 
 However, this approach does have downfalls such as Mirage's limit to a single virtual machine per core; this limitation means that certain applications that require access to multiple physical threads will not fit the Mirage programming model.
 For applications that do not need multiple physical threads but need asynchronous IO, Mirage has a lightweight cooperative threading, LWT, library that provides simple constructs for asynchronous code.
 
+Simple experiments with Mirage have proven that competitive performance to native C applications is not difficult to achieve.
+A Mirage DNS server implementation outperformed the standard Bind9 and NSD servers by 14\% in raw throughput in testing.
+This indicates that for the right workload, Mirage is an attractive choice that should be evaluated.
+
+
 
 \subsection{Related Work}
 
