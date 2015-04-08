@@ -76,8 +76,6 @@ Here in this section we will talk about our implementation of Keyvee and how we 
 
 \subsection{Overview}
 
-
-
 \begin{figure}[ht]
   \centering
   \caption{Supported commands}
@@ -99,7 +97,7 @@ The parse functions fully support well formed queries for our supported function
 After the parse phase, the data is handed off to the Hashtbl module which responds with data or writes data.
 The response is then written to the client in RESP compatible format.
 
-Leveraging MirageOS and OCaml guarantees type safety in both our application as well as in the implementations of frameworks underlying the application such as the TCP/IP stack, enhancing the security of our implementation.
+Mirage uses the Lwt, cooperative threading library, extensively and every request is wrapped in a lightweight cooperative thread. Leveraging Mirage and OCaml guarantees type safety in both our application as well as in the implementations of frameworks underlying the application such as the TCP/IP stack, enhancing the security of our implementation.
 
 \subsection{Development process}
 
