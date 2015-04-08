@@ -71,8 +71,16 @@ SET Operation
 
 \section{Evaluation}
 
+We performed all of our evaulations on a dedicated 8\-core HP ProLiant rack server with 16 GB RAM available.
+Our Xen hypervisor installation is coordinated by a Ubuntu Server 14.04 host that serves as the management domain to manage the other hosts running on the Hypervisor.
+
+
 \subsection{Running Mirage}
-% @NATE
+
+When a Mirage OS unikernel is configured in Xen mode, both the unikernel image and the configuration file are generated.
+With these, a unikernel can be easily launched using the xl Xen management tool.
+Due to the small size of the image, this is a quick process where the Mirage image configures itself when started by xl.
+
 
 
 \subsection{Network Overhead}
