@@ -68,8 +68,6 @@ Here in this section we will talk about our implementation of Keyvee and how we 
 
 \subsection{Overview}
 
-
-
 \begin{figure}[ht]
   \centering
   \caption{Supported commands}
@@ -80,7 +78,7 @@ Keyvee is implemented on top of the Mirage OS toolchain using OCaml. Currently, 
 
 We use MirageOS's low level TCP/IP network stack implemented in pure OCaml. Because memory layout in Mirage is used to distinguish I/O pages, the OCaml garbage collector needs to scan less to be as effective as in a full stack OS, which let's the network stack perform predictably. Predictable performance, as well as support for zero-copy I/O makes Mirage's network stack performant. The stack then hands off the raw data to our parse functions, which parse the data using string operations. The parse functions fully support well formed queries for our supported functions, but lack some verification steps and will not respond to badly formed queries. After the parse phase, the data is handed off to the Hashtbl module which responds with data or writes data. The response is then written to the client in RESP compatible format.
 
-Leveraging MirageOS and OCaml guarantees type safety in both our application as well as in the implementations of frameworks underlying the application such as the TCP/IP stack, enhancing the security of our implementation.
+Mirage uses the Lwt, cooperative threading library, extensively and every request is wrapped in a lightweight cooperative thread. Leveraging Mirage and OCaml guarantees type safety in both our application as well as in the implementations of frameworks underlying the application such as the TCP/IP stack, enhancing the security of our implementation.
 
 \subsection{Development process}
 
