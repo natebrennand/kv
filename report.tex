@@ -17,8 +17,8 @@
 
 \begin{abstract}
 Traditional web infrastructure models consist of a cluster of heavyweight full stack virtual machines usually running a variant of Linux.
-This provides a simple consistent platform for developers to write their applications against but it has many downfalls in the resource overhead of running virtual machines.
-Key-value datastores are a common component of web insfrastructure.
+This provides a simple consistent platform for developers to write their applications against but running a full stack machine on top of a hypervisor has a lot of resource overhead.
+Key-value datastores are a common component of web infrastructure.
 We've designed a Mirage OS\cite{mirage} unikernel implementation of the popular Redis\cite{redis} in-memory key-value store that allows fast creation and deployment of the datastore as well as ease scaling up the allocated resources.
 Applications developed with MirageOS can be deployed directly on the Xen hypervisor.
 We describe the advantages and disadvantages that come with such a system.
@@ -65,7 +65,7 @@ Redis is the most popular key-value store in industry\cite{dbengines}.
 It has various applications in server infrastructure, including caching, inter-server communication, queues etc.
 Redis maps keys to numerous types of values, including strings (supported by Keyvee) as well as lists of strings, sets of strings, hash tables etc.
 Redis has support for master-slave replication, and allows slaves to be masters to other slaves, enabling Redis to implement single-rooted replication tree.
-When durability is not needed, Redis is very performant although according to tests it has been shown to spend upward of 84\% of it's processing in kernel space, meaning there is some space to improve it's performance \cite{latency}.
+When durability is not needed, Redis is very performant although according to tests it has been shown to spend upward of 84\% of it's processing in kernel space, meaning there is some space to improve its performance \cite{latency}.
 
 
 \subsection{Mirage OS}
@@ -84,7 +84,7 @@ Also, with the lack of an operating system interface layer, Mirage applications 
 Thanks to a simple runtime, OCaml, an expressive functional systems programming language, was a good fit for the Mirage project to reimplement the runtime in an image that would run on Xen.
 The strictness of OCaml's type system ensures that programs are respect with regard to variable datatypes prior to compilation, because of this strictness the executable is able to shed all type checking which yields fast native code with performance comparable to C.
 
-As highlighted in figure 1, unikernels have a greatly reduced overhead when accessing resources relative to an application running on Linux.
+As highlighted in Figure 1, unikernels have a greatly reduced overhead when accessing resources relative to an application running on Linux.
 This approach brings some great benefits like zero\-copy IO and no scheduler\-induced delay in response.
 These performance improvements are important in high throughput and low latency applications like key\-value datastores.
 However, this approach does have downfalls such as Mirage's limit to a single virtual machine per core; this limitation means that certain applications that require access to multiple physical threads will not fit the Mirage programming model.
@@ -110,12 +110,12 @@ Mirage OS for examples uses OCaml-DNS, Mirage-TCPIP and other libraries. It also
 
 OSv\cite{osv} is another variant to the special-purpose operating system using the library OS paradigm, mostly based on code from BSD.
 In OSv everything runs in the kernel space and it's built to run as guest on top of a virtual machine.
-However, it support Linux ABI, and contains necessary functionality to run Java and POSIX applications which allows OSv to run some existing codebases and get some of the performance benefit Mirage enjoys.
+However, it support Linux ABI, and contains necessary functionality to run Java and POSIX applications which allows OSv to run some existing codebases and get some of the performance benefit Mirage enjoys, but not increased security.
 To get zero-copy I/O specific non-POSIX OSv API's need to be used.
-Mirage however focuses on a toolkit to assemble new unikernel application without specific domain knowledge in kernel programming for example.
+Mirage however does not focus on support for legacy applications but rather focuses on a toolkit to assemble new unikernel applications without specific domain knowledge in kernel programming.
 
 Arrakis\cite{arrakis}, SPIN\cite{spin} and Exokernel\cite{exokernel} all reduce shared kernel components and allow each application to have customized operating system management, achieving some of the increased performance benefit of Mirage OS without tying you to one language runtime.
-Arrakis in particular benefits from increased support for virtualization in new hardware, which allows it to effectively run all applications in kernel space and achieve seperation using hardware instructions, similar to how Mirage OS achieves seperation through Xen.
+Arrakis in particular benefits from increased support for virtualization in new hardware, which allows it to effectively run all applications in kernel space and achieves seperation between applications using hardware instructions, similar to how Mirage OS achieves seperation through Xen.
 
 
 
@@ -147,8 +147,8 @@ This means the hash function is randomly selected among 230 different hash funct
 
 We use MirageOS's low level TCP/IP network stack implemented in pure OCaml.
 Because memory layout in Mirage is used to distinguish I/O pages, the OCaml garbage collector needs to scan less to be as effective as in a full stack OS, which let's the network stack perform predictably.
-Predictable performance, as well as support for zero-copy I/O makes Mirage's network stack performant.
-The stack then hands off the raw data to our parse functions, which parse the data using string operations.
+Predictable performance, as well as support for zero-copy I/O makes Mirage's network stack more performant than traditional full stack OS.
+The network stack then hands off the raw data to our parse functions, which parse the data using string operations.
 The parse functions fully support well formed queries for our supported functions, but lack some verification steps and will not respond to badly formed queries.
 After the parse phase, the data is handed off to the Hashtbl module which responds with data or writes data.
 The response is then written to the client in RESP compatible format.
