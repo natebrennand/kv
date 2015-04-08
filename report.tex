@@ -8,16 +8,15 @@
 
 \begin{document}
 
-\title{Unikernel Web Infrastucture}
+\title{A Unikernel Key-Value Store}
 \author{Nate Brennand, Gudbergur Erlendsson, Mishail Tupas}
 \date{}
 \maketitle
 \thispagestyle{empty}
 
 \begin{abstract}
-  Traditional cloud infrastructure models typically consists of a cluster of full stack virtual machines running a standard OS kernel (usually Linux variant) on top of hardware that's managed with a hypervisor.
-  This provides a simple and consistent platform to develop against but there is a lot of resource overhead around virtualizing all of these machines.
-  Key-value datastores are a common component of web infrastructure.
+  Traditional cloud infrastructure models typically consists of a cluster of full stack virtual machines running a standard OS kernel (usually Linux variant) on top of hardware that's managed with a hypervisor. This provides a simple and consistent platform to develop against but there is a lot of resource overhead around virtualizing all of these machines.
+  Key-value datastores are a useful and common component of web infrastructure.
   We've designed a MirageOS\cite{mirage} unikernel implementation of the popular Redis\cite{redis} key-value store that allows fast creation and deployment of the datastore as well as ease scaling up the allocated resources.
   We describe the advantages and disadvantages that come with such a system.
   We highlight the performance characteristics of this new approach in comparison to Redis.
@@ -25,7 +24,7 @@
 
 \section{Introduction}
 In-memory key-value datastores are used in a wide variety of applications for ease of use and the high throughput.
-While these applications are known for their great performance, research has shown that networked applications striving for low latency, such as Redis, are actually subjected to a high amount of overhead from utilizing Linux's networking stack.\cite{arrakis}
+While these applications are known for their great performance, research has shown that networked applications striving for low latency, such as Redis, are actually subjected to a high amount of overhead from utilizing Linux's networking stack, spending non trivial percentage of time in kernel space.\cite{arrakis}
 This issue is amplified by the lack of stability when running on Linux itself which is prone to performance dips when the resource scheduler is not coordinated.
 
 We believe that the approach of moving the key-value datastore to a unikernel implementation will yield greater and more reliable performance.
@@ -39,7 +38,14 @@ Kayvee speaks the Redis Serialization Protocol\cite{redis-protocol}, RESP, which
 
 \section{Background}
 % unikernel backgorund
-The unikernel concept was first outlined X.
+
+\begin{figure}[ht]
+  \centering
+  \caption{Mirage OS architecture}
+  \includegraphics[width=0.5\textwidth]{images/design}
+\end{figure}
+
+The unikernel concept was first outlined .
 
 Today there are server operating systems developed for cloud computing that based on the concept of unikernels. MirageOS is a library operating system written in Ocaml that is commonly used for constructing unikernels.
 
@@ -48,13 +54,41 @@ Today there are server operating systems developed for cloud computing that base
 
 Redis, short for Remote Dictionary server, is a key-value store software that is commonly used in distributed systems on virtualized operating systems. It features (). However, this software is generally run atop a full operating system installation, which incurs a certain degree of overhead as discussed previously.  While the OSv operating system can support Redis, it does not function optimally.
 
-\section{Design and Implementation}
 
-The MirageOS unikernel library operating system is leveraged to provide a correct and compact implementation.
-MirageOS leverages the Ocaml language to provide type safety at a low level, this creates many guarantees in terms of correctness.
-GET Operation
-SET Operation
-Evaluation
+\section{Design and Implementation}
+For Keyvee we have the following goals:
+\begin{itemize}
+  \item Implement subset of Redis functionality in OCaml on top of the Mirage OS toolchain
+  \item Make Keyvee as compatible to Redis as possible.
+  \item Implement RESP, Redis's protocol specification, to allow interoperability with existing tools and libraries.
+\end{itemize}
+
+Here in this section we will talk about our implementation of Keyvee and how we try to accomplish these goals.
+
+\subsection{Overview}
+
+
+
+\begin{figure}[ht]
+  \centering
+  \caption{Supported commands}
+  \includegraphics[width=0.5\textwidth]{images/commands}
+\end{figure}
+
+Keyvee is implemented on top of the Mirage OS toolchain using OCaml. Currently, we support the GET, SET and DEL commands. All data is stored in-memory, similar to Redis. We have an internal module implementation built on top of OCaml's Hashtbl module, which stores our keys and associated data in an efficient lookup table. We use a hash table with a seeded hash function, using a seed randomly chosen at hash table creation time. This means the hash function is randomly selected among 230 different hash functions with different collision patterns which helps stop denial-of-service attacks where attackers can send input crafted to create collisions, slowing our application to a halt.
+
+We use MirageOS's low level TCP/IP network stack implemented in pure OCaml. Because memory layout in Mirage is used to distinguish I/O pages, the OCaml garbage collector needs to scan less to be as effective as in a full stack OS, which let's the network stack perform predictably. Predictable performance, as well as support for zero-copy I/O makes Mirage's network stack performant. The stack then hands off the raw data to our parse functions, which parse the data using string operations. The parse functions fully support well formed queries for our supported functions, but lack some verification steps and will not respond to badly formed queries. After the parse phase, the data is handed off to the Hashtbl module which responds with data or writes data. The response is then written to the client in RESP compatible format.
+
+Leveraging MirageOS and OCaml guarantees type safety in both our application as well as in the implementations of frameworks underlying the application such as the TCP/IP stack, enhancing the security of our implementation.
+
+\subsection{Development process}
+
+We use distributed version control system Git and Github to track changes to our codebase. Travis Continuous Integration is then used to build our codebase when changes are made and check for any errors. It is possible to build a Unix binary using the Mirage toolchain, which we use extensively when developing our code before it is deployed and tested on the Xen server. 
+
+The Mirage OS documentation leaves a lot to be desired and a lot of times we needed to go looking into Mirage OS's implementation it self. In addition, some OCaml modules do not work with the toolchain and there is scarcity of open source code built with it. Especially as it is the early days there is not a lot of community support surrounding Mirage.
+
+
+\section{Evaluation}
 
 To test the unikernel implementation, we utilized two of the benchmarking tools provided by the  ocam development kit. To get execution counts, the profiler “ocamlprof”, a part of the ocaml toolchain was used, inserting relevant information as comments to the code. To get detailed execution time information, the unikernel was compiled to include profiling information for the gprof tool.
 
@@ -65,7 +99,7 @@ Collected Results
 
 So far, the only benchmarks that have been completed were the Redis benchmarks for both the host-to-host setup and the native host setup. Preliminary benchmarks for the unikernel have been run.
 
-SET Operation
+
 
 
 \section{Related Work}
