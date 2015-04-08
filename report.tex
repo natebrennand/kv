@@ -205,7 +205,7 @@ Corrections to the Keyvee implementation are underway so that a fair benchmark c
 
 \section{Conclusion}
 % @NATE
-In the paper we have described the implementation and evaluation of our unikernel key-value store, Keyvee. Our efforts are concentrated around implementing a subset of Redis's functionality using OCaml and the Mirage OS toolchain. We then evaluate our implementation and compare it with Redis.
+In this paper we described the implementation and evaluation of our unikernel key-value store, Keyvee. Our efforts are concentrated around implementing a subset of Redis's functionality using OCaml and the Mirage OS toolchain. We then evaluated our implementation and compared it with Redis using Redis' benchmarking tool. Initial results revealed that, even when taking into account networking overhead, our unikernel implementation performed extremely poorly in both a Xen enviroment and a Unix installed environment. The main source of the low throughput was identified as an issue with handling the TCP clients used for benchmarking, resulting in a loss of parallelization. A fix is currently being developed and will be tested shortly to provide a better image of Keyvee's performance.
 
 
 \section{Acknowledgements}
