@@ -135,14 +135,14 @@ So far, the only benchmarks that have been completed were the Redis benchmarks f
 \section{Related Work}
 
 HaLVM\cite{halvm} and LING\cite{ling} are both alternatives to Mirage OS, using Haskell and Erlang respectively as the basis of their unikernel efforts.
-With all of these, you are limited to one functional language and the image is then built to run on top of the Xen hypervisor.
-Mirage OS and LING focuses on performance and predictability while HalVM focuses more on elegant compositional semantics using Haskell.
+All these three unikernel implementations (HaLVM, LING and Mirage) have in common that you are limited to one functional language exclusively and when compiled the resulting image is built to run on top of the Xen hypervisor.
+Mirage OS and LING focuses on performance and predictability while HalVM focuses more on elegant compositional semantics using Haskell, according to the authors\cite{tripreport}.
 Low level libraries are being implemented for the platforms in their native code, so while the work is ongoing the level of support varies.
-Mirage OS for example has a more mature SSL library and better support for encrypted connections then the other platforms.
+Mirage OS for examples uses OCaml-DNS, Mirage-TCPIP and other libraries. It also has a relatively advanced TLS library (OCaml-TLS) and better support for encrypted traffic then the other two library operating systems mentioned earlier.
 
-OSv\cite{osv} is another variant to the special-purpose operating system using the library OS paradigm.
+OSv\cite{osv} is another variant to the special-purpose operating system using the library OS paradigm, mostly based on code from BSD.
 In OSv everything runs in the kernel space and it's built to run as guest on top of a virtual machine.
-However, it contains necessary functionality to run Java and POSIX applications which allows OSv to run some existing codebases and get some of the performance benefit Mirage enjoys.
+However, it support Linux ABI, and contains necessary functionality to run Java and POSIX applications which allows OSv to run some existing codebases and get some of the performance benefit Mirage enjoys. To get zero-copy I/O specific non-POSIX OSv API's need to be used. 
 Mirage however focuses on a toolkit to assemble new unikernel application without specific domain knowledge in kernel programming for example.
 
 Arrakis\cite{arrakis}, SPIN\cite{spin} and Exokernel\cite{exokernel} all reduce shared kernel components and allow each application to have customized operating system management, achieving some of the increased performance benefit of Mirage OS without tying you to one language runtime.
