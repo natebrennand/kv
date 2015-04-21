@@ -1,6 +1,6 @@
 open Mirage
 
-let main = foreign "Unikernel.Main" (console @-> stackv4 @-> job)
+let main = foreign "Kv.Main" (console @-> stackv4 @-> job)
 
 let net =
   try match Sys.getenv "NET" with
@@ -11,8 +11,8 @@ let net =
 
 let dhcp =
   try match Sys.getenv "ADDR" with
-    | "dhcp"       -> `Dhcp
-    | "static" | _ -> `Static
+    | "static"    -> `Static
+    | "dhcp" | _  -> `Dhcp
   with Not_found -> `Dhcp
 
 let stack console =
@@ -22,6 +22,6 @@ let stack console =
   | `Socket, _       -> socket_stackv4 console [Ipaddr.V4.any]
 
 let () =
-  register "resp" [
+  register "keyvee" [
     main $ default_console $ stack default_console
   ]

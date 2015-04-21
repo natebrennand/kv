@@ -24,3 +24,9 @@ resp/main.ml
 resp/main.native
 resp/mir-network
 *.swp
+
+keyvee.xe
+keyvee.xl
+keyvee_libvirt.xml
+mir-keyvee
+
