@@ -29,7 +29,4 @@ opam init
 opam install ${OPAM_DEPENDS}
 eval `opam config env`
 
-# TODO: uncover once we have a Makefile
-# make
-# make test
-
+opam install mirage
