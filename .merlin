@@ -1,7 +1,7 @@
 PKG lwt
 PKG mirage
+PKG cstruct
 PKG mirage-unix
-PKG mirage-console-unix
 PKG mirage-types
 
 EXT lwt
