@@ -12,8 +12,8 @@ type resp_data =
 
 type command =
   | PING
-  | GET
-  | SET
+  | GET of string list
+  | SET of (string * resp_data) list
 
 
 
