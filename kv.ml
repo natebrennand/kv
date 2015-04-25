@@ -8,6 +8,7 @@ type resp_data =
   | String of string
   | Error of string
   | Array of resp_data list
+  | PONG
 
 
 type command =
@@ -22,40 +23,70 @@ let num_val chr =
   Char.code chr - Char.code '0'
 
 
-  (* parse an integer
-   * Returns an integer and the shifted buffer
-   * iterate until a '\r' is found, follows:
-   * http://redis.io/topics/protocol#high-performance-parser-for-the-redis-protocol *)
-  let parse_num buf =
-    let rec find_len buf n =
-      let c = Cstruct.get_char buf 0 in
-      if '\r' = c then n, (Cstruct.shift buf 2)
-      else find_len (Cstruct.shift buf 1) (n*10 + num_val c)
-    in find_len buf 0
+(* parse an integer
+ * Returns an integer and the shifted buffer
+ * iterate until a '\r' is found, follows:
+ * http://redis.io/topics/protocol#high-performance-parser-for-the-redis-protocol
+ *
+ * returns (n, buf)
+ * *)
+let parse_num buf =
+  let rec find_len buf n =
+    let c = Cstruct.get_char buf 0 in
+    if '\r' = c then (Cstruct.shift buf 2), n
+    else find_len (Cstruct.shift buf 1) (n*10 + num_val c)
+  in find_len buf 0
 
 
-  let parse_ping buf =
-    "ING" = Cstruct.copy buf 0 3
+let parse_ping buf =
+  "ING" = Cstruct.copy buf 0 3
+
+
+(* parse a bulk string
+ * - A "$" byte followed by the number of bytes composing the string (a prefixed length), terminated by CRLF.
+ * - The actual string data.
+ * - A final CRLF.
+ * *)
+let parse_bulk_str buf len =
+  let s = Cstruct.copy buf 0 len in
+  (Cstruct.shift buf (len+2)), s
+
+
+(* get_resp_len parses the first line of a RESP request
+ * returns (lines in request, offset from first line) *)
+let get_resp_len buf =
+  let astr = Cstruct.get_char buf 0 in
+  if astr = '*'
+    then parse_num (Cstruct.shift buf 1)
+    else buf, 0
 
 
 
-  (* parse a bulk string
-   * - A "$" byte followed by the number of bytes composing the string (a prefixed length), terminated by CRLF.
-   * - The actual string data.
-   * - A final CRLF.
-   * *)
-  let parse_bulk_str buf len =
-    let s = Cstruct.copy buf 0 len in
-    s, (Cstruct.shift buf (len+2))
+let parse_request buf =
+  let rec parse_array buf len =
+    if len = 0
+      then buf, []
+      else
+        let buf, arg = parse_arg buf in
+        let buf, args = parse_array buf (len - 1) in
+        buf, arg :: args
 
-
-  (* get_resp_len parses the first line of a RESP request
-   * returns (lines in request, offset from first line) *)
-  let get_resp_len buf =
-    let astr = Cstruct.get_char buf 0 in
-    if astr = '*'
-      then parse_num (Cstruct.shift buf 1)
-      else 0, buf
+  and parse_arg buf = match Cstruct.get_char buf 0 with
+    | '*' ->
+      let buf, num_args = parse_num (Cstruct.shift buf 1) in
+      let buf, args = parse_array buf num_args in
+      buf, Array(args)
+    | 'P' -> if parse_ping (Cstruct.shift buf 1)
+      then buf, PONG
+      else buf, Error("ERR: expected 'ping'")
+    | '$' ->
+      let buf, len = parse_num (Cstruct.shift buf 1) in
+      let buf, str = parse_bulk_str buf len in
+      buf, String(str)
+    | _ ->
+      buf, Error("ERR: unrecognized command")
+  in
+  parse_arg buf
 
 
 
