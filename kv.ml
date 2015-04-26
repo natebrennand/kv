@@ -48,10 +48,6 @@ let parse_num buf =
   in find_len buf 0
 
 
-let parse_ping buf =
-  "ING" = Cstruct.copy buf 0 3
-
-
 (* parse a bulk string
  * - A "$" byte followed by the number of bytes composing the string (a prefixed length), terminated by CRLF.
  * - The actual string data.
@@ -71,6 +67,8 @@ let get_resp_len buf =
     else buf, 0
 
 
+(* parse_request takes a cstruct and parses a
+ *   command. *)
 let parse_request buf =
   let rec parse_array buf len =
     if len = 0
@@ -79,7 +77,6 @@ let parse_request buf =
         let buf, arg = parse_arg buf in
         let buf, args = parse_array buf (len - 1) in
         buf, arg :: args
-
   and parse_arg buf = match Cstruct.get_char buf 0 with
     | '*' ->
       let buf, num_args = parse_num (Cstruct.shift buf 1) in
@@ -95,6 +92,7 @@ let parse_request buf =
   parse_arg buf
 
 
+(* handle_get finds the requested value in the hashtable *)
 let rec handle_get = function
   | String(key) :: [] ->
     if Hashtbl.mem hashtable key
@@ -103,6 +101,7 @@ let rec handle_get = function
   | _ -> ERROR("ERR: only string keys can be used with GET")
 
 
+(* handle_set sets the specified key/value pair in the hashtable *)
 let rec handle_set = function
   | String(key) :: String(str) :: [] ->
     let () = Hashtbl.replace hashtable key (Str str) in
@@ -113,6 +112,7 @@ let rec handle_set = function
   | _ -> ERROR("ERR: invalid SET arguments")
 
 
+(* handle_request forms a resp object based on the request *)
 let handle_request buf =
   let form_request = function
     | String(g) :: a
@@ -126,12 +126,15 @@ let handle_request buf =
   let buf, args = parse_request buf in
   match args with
     | Array(a) -> form_request a
-    | PING        -> PONG
-    | _           -> ERROR("ERR: unrecognized commands")
+    | PING     -> PONG
+    | _        -> ERROR("ERR: unrecognized commands")
 
 
 
+(* write_response forms a string based on the resp object's
+ *   values. *)
 let write_response r =
+  let error_str e = Printf.sprintf "-%s\r\n" e in
   let simple_str s = Printf.sprintf "+%s\r\n" s in
   let simple_num i = Printf.sprintf ":%d\r\n" i in
   let complex_val v =
@@ -151,6 +154,7 @@ let write_response r =
   match r with
   | PONG -> simple_str "PONG"
   | OK -> simple_str "OK"
+  | ERROR e       -> error_str e
   | Values(Int i) -> simple_num i
   | Values(Str s) -> simple_str s
   | Values(ValList l) -> list_vals l
@@ -167,8 +171,8 @@ module Main (C: V1_LWT.CONSOLE) (S: V1_LWT.STACKV4) = struct
 
   (* Writes an error message to the flow *)
   let send_err flow message =
-    let _ = S.TCPV4.write flow message in
-    ()
+    let _ = S.TCPV4.write flow message in ()
+
 
   let string_to_cstruct str =
     let l = String.length str in
@@ -191,10 +195,9 @@ module Main (C: V1_LWT.CONSOLE) (S: V1_LWT.STACKV4) = struct
         | `Ok buf ->
             let _ = C.log_s c (Printf.sprintf "{%s}" (Cstruct.to_string buf)) in
             S.TCPV4.write flow (handle_request buf |> write_response |> string_to_cstruct);
-            >>= (function
-              | `Ok () -> handle c flow
-              | `Eof -> report_and_close c flow "Connection closure initated."
-              | `Error _ -> report_and_close c flow "Connection error during writing; closing.")
+              >>= (function
+                | `Ok () | `Eof -> handle c flow  (* wait for the next command *)
+                | `Error _      -> report_and_close c flow "Connection error during writing; closing.")
         )
 
   let start c s =
