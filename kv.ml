@@ -9,19 +9,19 @@ type hash_values =
 let hashtable = Hashtbl.create 1000;;
 
 
-type resp_data =
+type req_data =
   | Number of int
   | String of string
   | Error of string
-  | Array of resp_data list
-  | PONG
-
-
-type command =
+  | Array of req_data list
   | PING
+
+
+type response =
+  | PONG
   | OK
-  | GET of string list
-  | SET of string * resp_data
+  | Nil
+  | Values of hash_values
   | ERROR of string
 
 
@@ -83,9 +83,6 @@ let parse_request buf =
       let buf, num_args = parse_num (Cstruct.shift buf 1) in
       let buf, args = parse_array buf num_args in
       buf, Array(args)
-    | 'P' -> if parse_ping (Cstruct.shift buf 1)
-      then buf, PONG
-      else buf, Error("ERR: expected 'ping'")
     | '$' ->
       let buf, len = parse_num (Cstruct.shift buf 1) in
       let buf, str = parse_bulk_str buf len in
@@ -96,9 +93,11 @@ let parse_request buf =
   parse_arg buf
 
 
-let rec handle_get aggr = function
-  | [] -> GET(aggr)
-  | String(key) :: args -> handle_get (key :: aggr) args
+let rec handle_get = function
+  | String(key) :: [] ->
+    if Hashtbl.mem hashtable key
+      then Values(Hashtbl.find hashtable key)
+      else Nil
   | _ -> ERROR("ERR: only string keys can be used with GET")
 
 
@@ -112,18 +111,22 @@ let rec handle_set = function
   | _ -> ERROR("ERR: invalid SET arguments")
 
 
-
 let handle_request buf =
   let form_request = function
-    (* | String(g) :: a when String.uppercase g = "GET" -> handle_get a *)
-    | String(s) :: a when String.uppercase s = "SET" -> handle_set a
+    | String(g) :: a
+      when String.uppercase g = "GET" -> handle_get a
+    | String(s) :: a
+      when String.uppercase s = "SET" -> handle_set a
+    | String(p) :: a
+      when String.uppercase p = "PING" -> PONG
     | _ -> ERROR("ERR: unsupported command")
   in
   let buf, args = parse_request buf in
   match args with
-    | Array(args) -> form_request args
-    | PONG -> PING
-    | _ -> ERROR("ERR: unrecognized commands")
+    | Array(a) -> form_request a
+    | PING        -> PONG
+    | _           -> ERROR("ERR: unrecognized commands")
+
 
 
 module Main (C: V1_LWT.CONSOLE) (S: V1_LWT.STACKV4) = struct
@@ -139,7 +142,15 @@ module Main (C: V1_LWT.CONSOLE) (S: V1_LWT.STACKV4) = struct
     let _ = S.TCPV4.write flow message in
     ()
 
+  let string_to_cstruct str =
+    let l = String.length str in
+    let c = Cstruct.create l in
+    let () = Cstruct.blit_from_string str 0 c 0 l in
+    c
 
+  let write_response = function
+    | PONG -> "+PONG\r\n"
+    | _ -> "-ERR: not implemented\r\n"
 
 
   let rec handle c flow =
@@ -155,10 +166,11 @@ module Main (C: V1_LWT.CONSOLE) (S: V1_LWT.STACKV4) = struct
           in report_and_close c flow message
         | `Ok buf ->
             let _ = C.log_s c (Printf.sprintf "{%s}" (Cstruct.to_string buf)) in
-            let n, buf = get_resp_len buf in
-            let _ = C.log_s c (Printf.sprintf "{%d args, left:{%s}}" n (Cstruct.to_string buf)) in
-            S.TCPV4.write flow buf
-            >>= function _ -> handle c flow
+            S.TCPV4.write flow (handle_request buf |> write_response |> string_to_cstruct);
+            >>= (function
+              | `Ok () -> handle c flow
+              | `Eof -> report_and_close c flow "Connection closure initated."
+              | `Error _ -> report_and_close c flow "Connection error during writing; closing.")
         )
 
   let start c s =
