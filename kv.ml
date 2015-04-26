@@ -27,7 +27,6 @@ type response =
   | ERROR of string
 
 
-
 (* value of number from ascii char *)
 let num_val chr =
   Char.code chr - Char.code '0'
@@ -154,6 +153,7 @@ let write_response r =
   match r with
   | PONG -> simple_str "PONG"
   | OK -> simple_str "OK"
+  | Nil -> "$-1\r\n"
   | ERROR e       -> error_str e
   | Values(Int i) -> simple_num i
   | Values(Str s) -> simple_str s
