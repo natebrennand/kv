@@ -22,7 +22,7 @@ type req_data =
 type response =
   | PONG
   | OK
-  | Nil
+  | NIL
   | Values of hash_values
   | ERROR of string
 
@@ -85,6 +85,10 @@ let parse_request buf =
       let buf, len = parse_num (Cstruct.shift buf 1) in
       let buf, str = parse_bulk_str buf len in
       buf, String(str)
+    | 'p' | 'P' ->
+        if "PING\r\n" = String.uppercase(Cstruct.copy buf 0 6)
+          then Cstruct.shift buf 6, PING
+          else buf, Error "ERR: inline text started with 'p' and was not PING"
     | _ ->
       buf, Error("ERR: unrecognized command")
   in
@@ -96,7 +100,7 @@ let rec handle_get = function
   | String(key) :: [] ->
     if Hashtbl.mem hashtable key
       then Values(Hashtbl.find hashtable key)
-      else Nil
+      else NIL
   | _ -> ERROR("ERR: only string keys can be used with GET")
 
 
@@ -129,11 +133,10 @@ let handle_request buf =
     | _        -> ERROR("ERR: unrecognized commands")
 
 
-
 (* write_response forms a string based on the resp object's
  *   values. *)
 let write_response r =
-  let error_str e = Printf.sprintf "-%s\r\n" e in
+  let error_str e  = Printf.sprintf "-%s\r\n" e in
   let simple_str s = Printf.sprintf "+%s\r\n" s in
   let simple_num i = Printf.sprintf ":%d\r\n" i in
   let complex_val v =
@@ -151,12 +154,12 @@ let write_response r =
        (String.concat "" (List.map complex_val l))
   in
   match r with
-  | PONG -> simple_str "PONG"
-  | OK -> simple_str "OK"
-  | Nil -> "$-1\r\n"
-  | ERROR e       -> error_str e
-  | Values(Int i) -> simple_num i
-  | Values(Str s) -> simple_str s
+  | PONG              -> simple_str "PONG"
+  | OK                -> simple_str "OK"
+  | NIL               -> "$-1\r\n"
+  | ERROR e           -> error_str e
+  | Values(Int i)     -> simple_num i
+  | Values(Str s)     -> simple_str s
   | Values(ValList l) -> list_vals l
   | _ -> "-ERR: not implemented\r\n"
 
@@ -176,28 +179,36 @@ module Main (C: V1_LWT.CONSOLE) (S: V1_LWT.STACKV4) = struct
 
   let string_to_cstruct str =
     let l = String.length str in
-    let c = Cstruct.create l in
-    let () = Cstruct.blit_from_string str 0 c 0 l in
-    c
+    let msg = Cstruct.create l in
+    let () = Cstruct.blit_from_string str 0 msg 0 l in
+    msg
 
+  let handle_err_read c flow e =
+    let message = match e with
+      | `Timeout -> "Echo connection timed out; closing.\n"
+      | `Refused -> "Echo connection refused; closing.\n"
+      | `Unknown s -> (Printf.sprintf "Echo connection error: %s\n" s)
+    in report_and_close c flow message
 
   let rec handle c flow =
     let _ = C.log_s c "handling client" in
     S.TCPV4.read flow >>= fun result -> (
       match result with
         | `Eof -> report_and_close c flow "Echo connection closure initiated."
-        | `Error e ->
-          let message = match e with
-            | `Timeout -> "Echo connection timed out; closing.\n"
-            | `Refused -> "Echo connection refused; closing.\n"
-            | `Unknown s -> (Printf.sprintf "Echo connection error: %s\n" s)
-          in report_and_close c flow message
+        | `Error e -> handle_err_read c flow e
         | `Ok buf ->
-            let _ = C.log_s c (Printf.sprintf "{%s}" (Cstruct.to_string buf)) in
-            S.TCPV4.write flow (handle_request buf |> write_response |> string_to_cstruct);
+            let _ = C.log_s c (Printf.sprintf "REQ: {%s}" (Cstruct.to_string buf)) in
+            let msg = handle_request buf |> write_response |> string_to_cstruct in
+            let _ = C.log_s c (Printf.sprintf "RESP: {%s}" (Cstruct.to_string msg)) in
+            S.TCPV4.write flow msg;
               >>= (function
-                | `Ok () | `Eof -> handle c flow  (* wait for the next command *)
-                | `Error _      -> report_and_close c flow "Connection error during writing; closing.")
+                | `Ok () -> handle c flow  (* wait for the next command *)
+                | `Eof   -> handle c flow  (* wait for the next command *)
+                (*
+                | `Ok ()   -> report_and_close c flow "request served successfully, closing connection"
+                | `Eof     -> report_and_close c flow "EOF, closing connection"
+                *)
+                | `Error _ -> report_and_close c flow "Connection error during writing; closing.")
         )
 
   let start c s =
