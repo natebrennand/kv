@@ -1,10 +1,12 @@
 open Lwt
 open V1_LWT
 
+exception Invalid_argument of string
 
 type hash_values =
   | Int of int
   | Str of string
+  | ValList of hash_values list
 
 let hashtable = Hashtbl.create 1000;;
 
@@ -129,6 +131,32 @@ let handle_request buf =
 
 
 
+let write_response r =
+  let simple_str s = Printf.sprintf "+%s\r\n" s in
+  let simple_num i = Printf.sprintf ":%d\r\n" i in
+  let complex_val v =
+    let l = 1 in
+    let v = match v with
+      | Int i -> Printf.sprintf ":%d\r\n" i
+      | Str s -> Printf.sprintf "$%d\r\n%s\r\n" (String.length s) s
+      | ValList l -> raise (Invalid_argument "List cannot be used in complex_val")
+    in Printf.sprintf "*%d\r\n%s" l v
+  in
+  let list_vals l =
+    let len = List.length l in
+     Printf.sprintf "*%s\r\n%s"
+       (string_of_int len)
+       (String.concat "" (List.map complex_val l))
+  in
+  match r with
+  | PONG -> simple_str "PONG"
+  | OK -> simple_str "OK"
+  | Values(Int i) -> simple_num i
+  | Values(Str s) -> simple_str s
+  | Values(ValList l) -> list_vals l
+  | _ -> "-ERR: not implemented\r\n"
+
+
 module Main (C: V1_LWT.CONSOLE) (S: V1_LWT.STACKV4) = struct
 
   (* Logs an error then closes the conn *)
@@ -147,10 +175,6 @@ module Main (C: V1_LWT.CONSOLE) (S: V1_LWT.STACKV4) = struct
     let c = Cstruct.create l in
     let () = Cstruct.blit_from_string str 0 c 0 l in
     c
-
-  let write_response = function
-    | PONG -> "+PONG\r\n"
-    | _ -> "-ERR: not implemented\r\n"
 
 
   let rec handle c flow =
