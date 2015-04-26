@@ -2,6 +2,12 @@ open Lwt
 open V1_LWT
 
 
+type hash_values =
+  | Int of int
+  | Str of string
+
+let hashtable = Hashtbl.create 1000;;
+
 
 type resp_data =
   | Number of int
@@ -13,8 +19,10 @@ type resp_data =
 
 type command =
   | PING
+  | OK
   | GET of string list
-  | SET of (string * resp_data) list
+  | SET of string * resp_data
+  | ERROR of string
 
 
 
@@ -61,7 +69,6 @@ let get_resp_len buf =
     else buf, 0
 
 
-
 let parse_request buf =
   let rec parse_array buf len =
     if len = 0
@@ -88,6 +95,35 @@ let parse_request buf =
   in
   parse_arg buf
 
+
+let rec handle_get aggr = function
+  | [] -> GET(aggr)
+  | String(key) :: args -> handle_get (key :: aggr) args
+  | _ -> ERROR("ERR: only string keys can be used with GET")
+
+
+let rec handle_set = function
+  | String(key) :: String(str) :: [] ->
+    let () = Hashtbl.replace hashtable key (Str str) in
+    OK
+  | String(key) :: Number(n) :: [] ->
+    let () = Hashtbl.replace hashtable key (Int n) in
+    OK
+  | _ -> ERROR("ERR: invalid SET arguments")
+
+
+
+let handle_request buf =
+  let form_request = function
+    (* | String(g) :: a when String.uppercase g = "GET" -> handle_get a *)
+    | String(s) :: a when String.uppercase s = "SET" -> handle_set a
+    | _ -> ERROR("ERR: unsupported command")
+  in
+  let buf, args = parse_request buf in
+  match args with
+    | Array(args) -> form_request args
+    | PONG -> PING
+    | _ -> ERROR("ERR: unrecognized commands")
 
 
 module Main (C: V1_LWT.CONSOLE) (S: V1_LWT.STACKV4) = struct
