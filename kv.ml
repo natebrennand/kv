@@ -116,11 +116,12 @@ let rec handle_set = function
 let handle_request buf =
   let form_request = function
     | String(s) :: a -> (
-        match (String.uppercase s) with
-          | "GET"  -> handle_get a
-          | "SET"  -> handle_set a
-          | "PING" -> Values(Str "PONG")
-          | _ -> ERROR("ERR: unsupported command"))
+      match (String.uppercase s) with
+        | "GET"  -> handle_get a
+        | "SET"  -> handle_set a
+        | "PING" -> Values(ValList([Str "PONG"]))
+        | _ -> ERROR("ERR: unsupported command")
+      )
     | _ -> ERROR("ERR: unsupported command")
   in
   let buf, args = parse_request buf in
@@ -192,23 +193,18 @@ module Main (C: V1_LWT.CONSOLE) (S: V1_LWT.STACKV4) = struct
 
 
   let rec handle c flow =
-    (* let _ = C.log_s c "handling client" in *)
-    (* S.TCPV4.read flow >>= (function *)
-    S.TCPV4.read flow >>= (fun msg ->
-      match msg with
+    let _ = C.log c "handling client" in
+    S.TCPV4.read flow >>= (function
       | `Eof     -> report_and_close c flow "Connection closure initiated."
       | `Error e -> handle_err_read c flow e
       | `Ok buf  ->
-        let msg = handle_request buf |> write_response |> string_to_cstruct in
-        (*
-         * let _ = C.log_s c "processing data" in
-        let _ = C.log_s c (Printf.sprintf "REQ: {%s} RESP: {%s}"
+        let msg = buf |> handle_request |> write_response |> string_to_cstruct in
+        let _ = C.log c (Printf.sprintf "REQ: {%s} RESP: {%s}"
           (buf |> Cstruct.to_string |> String.trim)
           (msg |> Cstruct.to_string |> String.trim))
         in
-        *)
         S.TCPV4.write flow msg >>= (function
-          | `Ok ()   -> handle c flow
+          | `Ok ()   -> let _ = C.log c "OK response" in handle c flow
           | `Eof     -> report_and_close c flow "Connection error during writing; closing."
           | `Error _ -> report_and_close c flow "Connection error during writing; closing."
         )
