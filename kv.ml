@@ -196,27 +196,26 @@ module Main (C: V1_LWT.CONSOLE) (S: V1_LWT.STACKV4) = struct
 
   let rec handle c flow =
     let _ = C.log_s c "handling client" in
-    S.TCPV4.read flow
-    >>= (function
-        | `Eof     -> report_and_close c flow "Connection closure initiated."
-        | `Error e -> handle_err_read c flow e
-        | `Ok buf  ->
-            let msg = handle_request buf |> write_response |> string_to_cstruct in
-            let _ = C.log_s c (Printf.sprintf "REQ: {%s} RESP: {%s}"
-              (buf |> Cstruct.to_string |> String.trim)
-              (msg |> Cstruct.to_string |> String.trim))
-            in
-            S.TCPV4.write flow msg;
-              >>= (function
-                (*
-                | `Ok ()   -> report_and_close c flow "request served successfully, closing connection"
-                | `Eof   -> handle c flow  (* wait for the next command *)
-                | `Ok ()   -> handle c flow  (* wait for the next command *)
-                *)
-                | `Ok ()   -> handle c flow  (* wait for the next command *)
-                | `Eof     -> handle c flow
-                | `Error _ -> report_and_close c flow "Connection error during writing; closing.")
+    S.TCPV4.read flow >>= (function
+      | `Eof     -> report_and_close c flow "Connection closure initiated."
+      | `Error e -> handle_err_read c flow e
+      | `Ok buf  ->
+        let msg = handle_request buf |> write_response |> string_to_cstruct in
+        let _ = C.log_s c (Printf.sprintf "REQ: {%s} RESP: {%s}"
+          (buf |> Cstruct.to_string |> String.trim)
+          (msg |> Cstruct.to_string |> String.trim))
+        in
+        S.TCPV4.write flow msg >>= (function
+          (*
+          | `Ok ()   -> report_and_close c flow "request served successfully, closing connection"
+          | `Eof   -> handle c flow  (* wait for the next command *)
+          | `Ok ()   -> handle c flow  (* wait for the next command *)
+          *)
+          | `Ok ()   -> handle c flow  (* wait for the next command *)
+          | `Eof     -> handle c flow
+          | `Error _ -> report_and_close c flow "Connection error during writing; closing."
         )
+    )
 
   let start c s =
     S.listen_tcpv4 s ~port:6379 (handle c);
