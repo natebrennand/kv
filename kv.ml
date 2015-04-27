@@ -42,8 +42,9 @@ let num_val chr =
 let parse_num buf =
   let rec find_len buf n =
     let c = Cstruct.get_char buf 0 in
-    if '\r' = c then (Cstruct.shift buf 2), n
-    else find_len (Cstruct.shift buf 1) (n*10 + num_val c)
+    if '\r' = c
+      then ((Cstruct.shift buf 2), n)
+      else find_len (Cstruct.shift buf 1) (n*10 + num_val c)
   in find_len buf 0
 
 
@@ -52,9 +53,9 @@ let parse_num buf =
  * - The actual string data.
  * - A final CRLF.
  * *)
-let parse_bulk_str buf len =
+let parse_bulk_str (buf, len) =
   let s = Cstruct.copy buf 0 len in
-  (Cstruct.shift buf (len+2)), s
+  (Cstruct.shift buf (len+2)), String(s)
 
 
 (* get_resp_len parses the first line of a RESP request
@@ -66,29 +67,25 @@ let get_resp_len buf =
     else buf, 0
 
 
+let parse_ping buf =
+  if "PING\r\n" = String.uppercase(Cstruct.copy buf 0 6)
+    then Cstruct.shift buf 6, PING
+    else buf, Error "ERR: inline text started with 'p' and was not PING"
+
+
 (* parse_request takes a cstruct and parses a
  *   command. *)
 let parse_request buf =
-  let rec parse_array buf len =
+  let rec parse_array aggr (buf, len) =
     if len = 0
-      then buf, []
+      then buf, Array(aggr)
       else
         let buf, arg = parse_arg buf in
-        let buf, args = parse_array buf (len - 1) in
-        buf, arg :: args
+        parse_array (aggr @ [arg]) (buf, (len -1))
   and parse_arg buf = match Cstruct.get_char buf 0 with
-    | '*' ->
-      let buf, num_args = parse_num (Cstruct.shift buf 1) in
-      let buf, args = parse_array buf num_args in
-      buf, Array(args)
-    | '$' ->
-      let buf, len = parse_num (Cstruct.shift buf 1) in
-      let buf, str = parse_bulk_str buf len in
-      buf, String(str)
-    | 'p' | 'P' ->
-        if "PING\r\n" = String.uppercase(Cstruct.copy buf 0 6)
-          then Cstruct.shift buf 6, PING
-          else buf, Error "ERR: inline text started with 'p' and was not PING"
+    | '*'       -> parse_num (Cstruct.shift buf 1) |> parse_array []
+    | '$'       -> parse_num (Cstruct.shift buf 1) |> parse_bulk_str
+    | 'p' | 'P' -> parse_ping buf
     | _ ->
       buf, Error("ERR: unrecognized command")
   in
@@ -118,18 +115,18 @@ let rec handle_set = function
 (* handle_request forms a resp object based on the request *)
 let handle_request buf =
   let form_request = function
-    | String(g) :: a
-      when String.uppercase g = "GET" -> handle_get a
-    | String(s) :: a
-      when String.uppercase s = "SET" -> handle_set a
-    | String(p) :: a
-      when String.uppercase p = "PING" -> PONG
+    | String(s) :: a -> (
+        match (String.uppercase s) with
+          | "GET"  -> handle_get a
+          | "SET"  -> handle_set a
+          | "PING" -> Values(Str "PONG")
+          | _ -> ERROR("ERR: unsupported command"))
     | _ -> ERROR("ERR: unsupported command")
   in
   let buf, args = parse_request buf in
   match args with
     | Array(a) -> form_request a
-    | PING     -> PONG
+    | PING     -> Values(Str "PONG")
     | _        -> ERROR("ERR: unrecognized commands")
 
 
@@ -154,7 +151,7 @@ let write_response r =
        (String.concat "" (List.map complex_val l))
   in
   match r with
-  | PONG              -> simple_str "PONG"
+  | PONG              -> "+PONG"
   | OK                -> simple_str "OK"
   | NIL               -> "$-1\r\n"
   | ERROR e           -> error_str e
@@ -163,6 +160,11 @@ let write_response r =
   | Values(ValList l) -> list_vals l
   | _ -> "-ERR: not implemented\r\n"
 
+(*
+ * ================================================================================
+ * ================================================================================
+ * ================================================================================
+*)
 
 module Main (C: V1_LWT.CONSOLE) (S: V1_LWT.STACKV4) = struct
 
@@ -183,31 +185,36 @@ module Main (C: V1_LWT.CONSOLE) (S: V1_LWT.STACKV4) = struct
     let () = Cstruct.blit_from_string str 0 msg 0 l in
     msg
 
+
   let handle_err_read c flow e =
     let message = match e with
-      | `Timeout -> "Echo connection timed out; closing.\n"
-      | `Refused -> "Echo connection refused; closing.\n"
+      | `Timeout -> "connection timed out; closing.\n"
+      | `Refused -> "connection refused; closing.\n"
       | `Unknown s -> (Printf.sprintf "Echo connection error: %s\n" s)
     in report_and_close c flow message
 
+
   let rec handle c flow =
     let _ = C.log_s c "handling client" in
-    S.TCPV4.read flow >>= fun result -> (
-      match result with
-        | `Eof -> report_and_close c flow "Echo connection closure initiated."
+    S.TCPV4.read flow
+    >>= (function
+        | `Eof     -> report_and_close c flow "Connection closure initiated."
         | `Error e -> handle_err_read c flow e
-        | `Ok buf ->
-            let _ = C.log_s c (Printf.sprintf "REQ: {%s}" (Cstruct.to_string buf)) in
+        | `Ok buf  ->
             let msg = handle_request buf |> write_response |> string_to_cstruct in
-            let _ = C.log_s c (Printf.sprintf "RESP: {%s}" (Cstruct.to_string msg)) in
+            let _ = C.log_s c (Printf.sprintf "REQ: {%s} RESP: {%s}"
+              (buf |> Cstruct.to_string |> String.trim)
+              (msg |> Cstruct.to_string |> String.trim))
+            in
             S.TCPV4.write flow msg;
               >>= (function
-                | `Ok () -> handle c flow  (* wait for the next command *)
-                | `Eof   -> handle c flow  (* wait for the next command *)
                 (*
                 | `Ok ()   -> report_and_close c flow "request served successfully, closing connection"
-                | `Eof     -> report_and_close c flow "EOF, closing connection"
+                | `Eof   -> handle c flow  (* wait for the next command *)
+                | `Ok ()   -> handle c flow  (* wait for the next command *)
                 *)
+                | `Ok ()   -> handle c flow  (* wait for the next command *)
+                | `Eof     -> handle c flow
                 | `Error _ -> report_and_close c flow "Connection error during writing; closing.")
         )
 
