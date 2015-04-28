@@ -24,6 +24,7 @@ type response =
   | NIL
   | Values of hash_values
   | ValList of hash_values list
+  | ARRAY of response list
   | ERROR of string
 
 
@@ -100,7 +101,7 @@ let parse_request buf =
 
 
 (* handle_get finds the requested value in the hashtable *)
-let rec handle_get = function
+let handle_get = function
   | String(key) :: [] ->
     if Hashtbl.mem hashtable key
       then Values(Hashtbl.find hashtable key)
@@ -110,7 +111,7 @@ let rec handle_get = function
 
 
 (* handle_mget finds the requested value(s) in the hashtable *)
-let rec handle_mget args =
+let handle_mget args =
   let rec retrieve = function
     | [] -> []
     | String(key) :: rest ->
@@ -125,14 +126,28 @@ let rec handle_mget args =
 
 
 (* handle_set sets the specified key/value pair in the hashtable *)
-let rec handle_set = function
+let handle_set = function
   | String(key) :: String(str) :: [] ->
-    let () = Hashtbl.replace hashtable key (Str str) in
-    OK
+    Hashtbl.replace hashtable key (Str str); OK
   | String(key) :: Number(n) :: [] ->
-    let () = Hashtbl.replace hashtable key (Int n) in
-    OK
+    Hashtbl.replace hashtable key (Int n); OK
   | _ -> ERROR("ERR: invalid SET arguments")
+
+
+(* handle_mset sets the specified key/value pair(s) in the hashtable *)
+let handle_mset args =
+  let rec establish = function
+    | String(key) :: String(str) :: rest ->
+      Hashtbl.replace hashtable key (Str str); establish rest
+    | String(key) :: Number(n) :: rest ->
+      Hashtbl.replace hashtable key (Int n); establish rest
+    | [] -> OK
+    | _ -> ERROR("ERR: invalid SET arguments")
+  in
+  if List.length args = 0
+    then ERROR("MSET requires > 0 arguments")
+    else try establish args
+      with Invalid_argument e -> ERROR e
 
 
 (* handle_request forms a resp object based on the request *)
@@ -144,6 +159,7 @@ let handle_request buf =
         | "GET"   -> handle_get a
         | "MGET"  -> handle_mget a
         | "SET"   -> handle_set a
+        | "MSET"  -> handle_mset a
         | "PING"  -> PONG
         | _ -> ERROR("ERR: unsupported command")
       )
@@ -166,12 +182,10 @@ let write_response r =
   let error_str e  = Printf.sprintf "-%s\r\n" e in
   let simple_str s = Printf.sprintf "+%s\r\n" s in
   let simple_num i = Printf.sprintf ":%d\r\n" i in
-  let complex_val v =
-    let v = match v with
-      | Int i -> Printf.sprintf ":%d\r\n" i
-      | Str s -> Printf.sprintf "$%d\r\n%s\r\n" (String.length s) s
-      | Nil   -> "$-1\r\n"
-    in v
+  let complex_val = function
+    | Int i -> Printf.sprintf ":%d\r\n" i
+    | Str s -> Printf.sprintf "$%d\r\n%s\r\n" (String.length s) s
+    | Nil   -> "$-1\r\n"
   in
   let list_vals l =
     let len = List.length l in
@@ -230,6 +244,8 @@ module Main (C: V1_LWT.CONSOLE) (S: V1_LWT.STACKV4) = struct
       | `Eof     -> report_and_close c flow "Connection closure initiated."
       | `Error e -> handle_err_read c flow e
       | `Ok buf  ->
+        let _ = C.log c (Printf.sprintf "REQ: {%s}"
+          (buf |> Cstruct.to_string |> String.trim)) in
         let msg = buf |> handle_request |> write_response |> string_to_cstruct in
         let _ = C.log c (Printf.sprintf "REQ: {%s} RESP: {%s}"
           (buf |> Cstruct.to_string |> String.trim)
