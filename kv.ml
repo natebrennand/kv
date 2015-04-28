@@ -89,7 +89,14 @@ let parse_request buf =
     | _ ->
       buf, Error("ERR: unrecognized command")
   in
-  parse_arg buf
+  let rec find_all_args buf aggr =
+    let buf, arg = parse_arg buf in
+    let args = aggr @ [arg] in
+    if Cstruct.len buf > 0
+      then find_all_args buf args
+      else buf, args
+  in
+  find_all_args buf []
 
 
 (* handle_get finds the requested value in the hashtable *)
@@ -114,21 +121,24 @@ let rec handle_set = function
 
 (* handle_request forms a resp object based on the request *)
 let handle_request buf =
+  let buf, args = parse_request buf in
   let form_request = function
     | String(s) :: a -> (
       match (String.uppercase s) with
         | "GET"  -> handle_get a
         | "SET"  -> handle_set a
-        | "PING" -> Values(ValList([Str "PONG"]))
+        | "PING" -> PONG
         | _ -> ERROR("ERR: unsupported command")
       )
     | _ -> ERROR("ERR: unsupported command")
   in
-  let buf, args = parse_request buf in
-  match args with
-    | Array(a) -> form_request a
-    | PING     -> Values(Str "PONG")
-    | _        -> ERROR("ERR: unrecognized commands")
+  let rec form_resp = function
+    | [] -> []
+    | Array(a) :: rest -> (form_request a) :: form_resp rest
+    | PING :: rest     -> Values(Str "PONG") :: form_resp rest
+    | _                -> ERROR("ERR: unrecognized commands") :: []
+  in
+  form_resp args
 
 
 (* write_response forms a string based on the resp object's
@@ -151,15 +161,19 @@ let write_response r =
        (string_of_int len)
        (String.concat "" (List.map complex_val l))
   in
-  match r with
-  | PONG              -> "+PONG"
-  | OK                -> simple_str "OK"
-  | NIL               -> "$-1\r\n"
-  | ERROR e           -> error_str e
-  | Values(Int i)     -> simple_num i
-  | Values(Str s)     -> simple_str s
-  | Values(ValList l) -> list_vals l
-  | _ -> "-ERR: not implemented\r\n"
+  let serialize_resp = function
+    (* translates a resp object to a string *)
+    | PONG              -> simple_str "PONG"
+    | OK                -> simple_str "OK"
+    | NIL               -> "$-1\r\n"
+    | ERROR e           -> error_str e
+    | Values(Int i)     -> simple_num i
+    | Values(Str s)     -> simple_str s
+    | Values(ValList l) -> list_vals l
+    | _ -> "-ERR: not implemented\r\n"
+  in
+  (* translate all resp objects to strings and combine them *)
+  r |> List.map serialize_resp |> String.concat ""
 
 (*
  * ================================================================================
