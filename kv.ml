@@ -6,7 +6,7 @@ exception Invalid_argument of string
 type hash_values =
   | Int of int
   | Str of string
-  | ValList of hash_values list
+  | Nil
 
 let hashtable = Hashtbl.create 1000;;
 
@@ -14,7 +14,6 @@ let hashtable = Hashtbl.create 1000;;
 type req_data =
   | Number of int
   | String of string
-  | Error of string
   | Array of req_data list
   | PING
 
@@ -24,6 +23,7 @@ type response =
   | OK
   | NIL
   | Values of hash_values
+  | ValList of hash_values list
   | ERROR of string
 
 
@@ -70,7 +70,7 @@ let get_resp_len buf =
 let parse_ping buf =
   if "PING\r\n" = String.uppercase(Cstruct.copy buf 0 6)
     then Cstruct.shift buf 6, PING
-    else buf, Error "ERR: inline text started with 'p' and was not PING"
+    else raise (Invalid_argument "ERR: inline text started with 'p' and was not PING")
 
 
 (* parse_request takes a cstruct and parses a
@@ -82,12 +82,12 @@ let parse_request buf =
       else
         let buf, arg = parse_arg buf in
         parse_array (aggr @ [arg]) (buf, (len -1))
-  and parse_arg buf = match Cstruct.get_char buf 0 with
-    | '*'       -> parse_num (Cstruct.shift buf 1) |> parse_array []
-    | '$'       -> parse_num (Cstruct.shift buf 1) |> parse_bulk_str
-    | 'p' | 'P' -> parse_ping buf
-    | _ ->
-      buf, Error("ERR: unrecognized command")
+  and parse_arg buf =
+      match Cstruct.get_char buf 0 with
+      | '*'       -> parse_num (Cstruct.shift buf 1) |> parse_array []
+      | '$'       -> parse_num (Cstruct.shift buf 1) |> parse_bulk_str
+      | 'p' | 'P' -> parse_ping buf
+      | _         -> raise (Invalid_argument "ERR: unrecognized command")
   in
   let rec find_all_args buf aggr =
     let buf, arg = parse_arg buf in
@@ -105,7 +105,23 @@ let rec handle_get = function
     if Hashtbl.mem hashtable key
       then Values(Hashtbl.find hashtable key)
       else NIL
+  | String(key) :: _ :: [] -> ERROR("ERR: only 1 key can be used with GET")
   | _ -> ERROR("ERR: only string keys can be used with GET")
+
+
+(* handle_mget finds the requested value(s) in the hashtable *)
+let rec handle_mget args =
+  let rec retrieve = function
+    | [] -> []
+    | String(key) :: rest ->
+      (if Hashtbl.mem hashtable key
+        then Hashtbl.find hashtable key
+        else Nil
+      ) :: retrieve rest
+    | _ -> raise (Invalid_argument "ERR: only string keys can be used with GET")
+  in
+  try ValList(retrieve args)
+    with Invalid_argument e -> ERROR e
 
 
 (* handle_set sets the specified key/value pair in the hashtable *)
@@ -125,9 +141,10 @@ let handle_request buf =
   let form_request = function
     | String(s) :: a -> (
       match (String.uppercase s) with
-        | "GET"  -> handle_get a
-        | "SET"  -> handle_set a
-        | "PING" -> PONG
+        | "GET"   -> handle_get a
+        | "MGET"  -> handle_mget a
+        | "SET"   -> handle_set a
+        | "PING"  -> PONG
         | _ -> ERROR("ERR: unsupported command")
       )
     | _ -> ERROR("ERR: unsupported command")
@@ -136,9 +153,11 @@ let handle_request buf =
     | [] -> []
     | Array(a) :: rest -> (form_request a) :: form_resp rest
     | PING :: rest     -> Values(Str "PONG") :: form_resp rest
-    | _                -> ERROR("ERR: unrecognized commands") :: []
+    | (Number _ | String _) :: _    -> ERROR("ERR: unrecognized commands") :: []
   in
-  form_resp args
+  try (* catch all possible errors HERE *)
+    form_resp args
+  with Invalid_argument e -> ((ERROR e) :: [])
 
 
 (* write_response forms a string based on the resp object's
@@ -148,12 +167,11 @@ let write_response r =
   let simple_str s = Printf.sprintf "+%s\r\n" s in
   let simple_num i = Printf.sprintf ":%d\r\n" i in
   let complex_val v =
-    let l = 1 in
     let v = match v with
       | Int i -> Printf.sprintf ":%d\r\n" i
       | Str s -> Printf.sprintf "$%d\r\n%s\r\n" (String.length s) s
-      | ValList l -> raise (Invalid_argument "List cannot be used in complex_val")
-    in Printf.sprintf "*%d\r\n%s" l v
+      | Nil   -> "$-1\r\n"
+    in v
   in
   let list_vals l =
     let len = List.length l in
@@ -163,13 +181,13 @@ let write_response r =
   in
   let serialize_resp = function
     (* translates a resp object to a string *)
-    | PONG              -> simple_str "PONG"
-    | OK                -> simple_str "OK"
-    | NIL               -> "$-1\r\n"
-    | ERROR e           -> error_str e
-    | Values(Int i)     -> simple_num i
-    | Values(Str s)     -> simple_str s
-    | Values(ValList l) -> list_vals l
+    | PONG          -> simple_str "PONG"
+    | OK            -> simple_str "OK"
+    | NIL           -> "$-1\r\n"
+    | ERROR e       -> error_str e
+    | Values(Int i) -> simple_num i
+    | Values(Str s) -> simple_str s
+    | ValList l     -> list_vals l
     | _ -> "-ERR: not implemented\r\n"
   in
   (* translate all resp objects to strings and combine them *)
