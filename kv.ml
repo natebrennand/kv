@@ -244,7 +244,7 @@ module Main (C: V1_LWT.CONSOLE) (S: V1_LWT.STACKV4) = struct
       | `Ok buf  ->
         let msg = buf |> handle_request |> write_response |> string_to_cstruct in
         S.TCPV4.write flow msg >>= (function
-          | `Ok ()   -> let _ = C.log c "OK response" in handle c flow
+          | `Ok ()   -> handle c flow
           | `Eof     -> report_and_close c flow "Connection error during writing; closing."
           | `Error _ -> report_and_close c flow "Connection error during writing; closing."
         )
