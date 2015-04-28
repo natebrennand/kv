@@ -238,18 +238,11 @@ module Main (C: V1_LWT.CONSOLE) (S: V1_LWT.STACKV4) = struct
 
 
   let rec handle c flow =
-    let _ = C.log c "handling client" in
     S.TCPV4.read flow >>= (function
-      | `Eof     -> report_and_close c flow "Connection closure initiated."
+      | `Eof     -> S.TCPV4.close flow
       | `Error e -> handle_err_read c flow e
       | `Ok buf  ->
-        let _ = C.log c (Printf.sprintf "REQ: {%s}"
-          (buf |> Cstruct.to_string |> String.trim)) in
         let msg = buf |> handle_request |> write_response |> string_to_cstruct in
-        let _ = C.log c (Printf.sprintf "REQ: {%s} RESP: {%s}"
-          (buf |> Cstruct.to_string |> String.trim)
-          (msg |> Cstruct.to_string |> String.trim))
-        in
         S.TCPV4.write flow msg >>= (function
           | `Ok ()   -> let _ = C.log c "OK response" in handle c flow
           | `Eof     -> report_and_close c flow "Connection error during writing; closing."
