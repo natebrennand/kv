@@ -28,11 +28,6 @@ type response =
   | ERROR of string
 
 
-(* value of number from ascii char *)
-let num_val chr =
-  Char.code chr - Char.code '0'
-
-
 (* parse an integer
  * Returns an integer and the shifted buffer
  * iterate until a '\r' is found, follows:
@@ -41,10 +36,14 @@ let num_val chr =
  * returns (n, buf)
  * *)
 let parse_num buf =
+  (* value of number from ascii char *)
+  let num_val chr =
+    Char.code chr - Char.code '0'
+  in
   let rec find_len buf n =
     let c = Cstruct.get_char buf 0 in
     if '\r' = c
-      then ((Cstruct.shift buf 2), n)
+      then (Cstruct.shift buf 2, n)
       else find_len (Cstruct.shift buf 1) (n*10 + num_val c)
   in find_len buf 0
 
