@@ -148,18 +148,24 @@ let handle_mset args =
     else try establish args
       with Invalid_argument e -> ERROR e
 
+(* handle_flushdb should clear the hashtable *)
+let handle_flushdb () =
+  print_endline "CLEARING table";
+  let () = Hashtbl.clear hashtable in OK
 
 (* handle_request forms a resp object based on the request *)
 let handle_request buf =
   let buf, args = parse_request buf in
   let form_request = function
     | String(s) :: a -> (
+      print_endline (String.uppercase s);
       match (String.uppercase s) with
-        | "GET"   -> handle_get a
-        | "MGET"  -> handle_mget a
-        | "SET"   -> handle_set a
-        | "MSET"  -> handle_mset a
-        | "PING"  -> PONG
+        | "GET"     -> handle_get a
+        | "MGET"    -> handle_mget a
+        | "SET"     -> handle_set a
+        | "MSET"    -> handle_mset a
+        | "FLUSHDB" -> handle_flushdb ()
+        | "PING"    -> PONG
         | _ -> ERROR("ERR: unsupported command")
       )
     | _ -> ERROR("ERR: unsupported command")
