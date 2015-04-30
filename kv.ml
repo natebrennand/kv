@@ -243,17 +243,20 @@ module Main (C: V1_LWT.CONSOLE) (S: V1_LWT.STACKV4) = struct
 
 
   let rec handle c flow =
-    S.TCPV4.read flow >>= (function
-      | `Eof     -> S.TCPV4.close flow
-      | `Error e -> handle_err_read c flow e
-      | `Ok buf  ->
-        let msg = buf |> handle_request |> write_response |> string_to_cstruct in
-        S.TCPV4.write flow msg >>= (function
-          | `Ok ()   -> handle c flow
-          | `Eof     -> report_and_close c flow "Connection error during writing; closing."
-          | `Error _ -> report_and_close c flow "Connection error during writing; closing."
-        )
-    )
+    S.TCPV4.read flow >>= read_outcome c flow
+
+  and read_outcome c flow = function
+    | `Eof     -> S.TCPV4.close flow
+    | `Error e -> handle_err_read c flow e
+    | `Ok buf  ->
+      let msg = buf |> handle_request |> write_response |> string_to_cstruct in
+      S.TCPV4.write flow msg >>= write_outcome c flow
+
+  and write_outcome c flow = function
+    | `Ok ()   -> handle c flow
+    | `Eof     -> report_and_close c flow "Connection error during writing; closing."
+    | `Error _ -> report_and_close c flow "Connection error during writing; closing."
+
 
   let start c s =
     S.listen_tcpv4 s ~port:6379 (handle c);
