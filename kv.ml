@@ -27,6 +27,12 @@ type response =
   | ARRAY of response list
   | ERROR of string
 
+let rec advance_past buf character =
+  if Cstruct.len buf = 0
+    then buf
+    else if Cstruct.get_char buf 0 = character
+      then Cstruct.shift buf 1
+      else advance_past (Cstruct.shift buf 1) character
 
 (* parse an integer
  * Returns an integer and the shifted buffer
@@ -68,9 +74,11 @@ let get_resp_len buf =
 
 
 let parse_ping buf =
-  if "PING\r\n" = String.uppercase(Cstruct.copy buf 0 6)
-    then Cstruct.shift buf 6, PING
-    else raise (Invalid_argument "ERR: inline text started with 'p' and was not PING")
+  if Cstruct.len buf >= 4
+    then if "PING" = String.uppercase(Cstruct.copy buf 0 4)
+      then (advance_past buf '\n'), PING
+      else raise (Invalid_argument "ERR: inline text started with 'p' and was not PING")
+    else raise (Invalid_argument "ERR: ping needs at least 4 characters")
 
 
 (* parse_request takes a cstruct and parses a
