@@ -2,6 +2,7 @@ open Lwt
 open V1_LWT
 
 exception Invalid_argument of string
+exception Parse_error of string
 
 type hash_values =
   | Int of int
@@ -27,12 +28,56 @@ type response =
   | ARRAY of response list
   | ERROR of string
 
-let rec advance_past buf character =
-  if Cstruct.len buf = 0
-    then buf
-    else if Cstruct.get_char buf 0 = character
-      then Cstruct.shift buf 1
-      else advance_past (Cstruct.shift buf 1) character
+
+let clen = Cstruct.len
+
+let cshift = Cstruct.shift
+
+let blen buffers = List.fold_left (fun s c -> s + clen c) 0 buffers
+
+let cget_char = function
+  | buf :: l -> Cstruct.get_char buf 0
+  | [] -> raise (Parse_error "No buffers for cget_char")
+
+(* TODO: make recursive *)
+let shift_buffers n = function
+  | [] -> raise (Parse_error "No buffers for shift_buffers")
+  | buf :: [] ->
+    if n = clen buf
+      then []
+    else if n < clen buf
+      then (cshift buf n) :: []
+    else raise (Parse_error "Last buffer too small for shift_buffers")
+  | buf1 :: buf2 :: bufs ->
+    if n = clen buf1
+      then buf2 :: bufs
+    else if n < clen buf1
+      then (cshift buf1 n) :: buf2 :: bufs
+    else if (n - clen buf1) < (clen buf2)
+      then (cshift buf2 (n - clen buf1 )):: bufs
+    else raise (Parse_error "Two buffers too small for shift_buffers")
+
+let copy_buffers len = function
+  | [] -> raise (Parse_error "No buffers for cget_char")
+  | buf :: [] ->
+    if len <= clen buf
+      then Cstruct.copy buf 0 len
+      else raise (Parse_error "Last buffer too small for copy_buffers")
+  | buf1 :: buf2 :: bufs ->
+    let l1 = clen buf1 in
+    let l2 = (len - l1) in
+    if len <= l1
+      then Cstruct.copy buf1 0 len
+      else if len <= (l1+l2)
+        then (Cstruct.copy buf1 0 l1) ^ (Cstruct.copy buf2 0 l2)
+        else raise (Parse_error "Two buffers too small for copy_buffers")
+
+let rec advance_past buffers character =
+  if blen buffers = 0
+    then buffers
+    else if cget_char buffers = character
+      then shift_buffers 1 buffers
+      else advance_past (shift_buffers 1 buffers) character
 
 (* parse an integer
  * Returns an integer and the shifted buffer
