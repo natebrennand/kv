@@ -84,72 +84,73 @@ let rec advance_past buffers character =
  * iterate until a '\r' is found, follows:
  * http://redis.io/topics/protocol#high-performance-parser-for-the-redis-protocol
  *
- * returns (n, buf)
+ * returns (n, buffers)
  * *)
-let parse_num buf =
+let parse_num buffers =
   (* value of number from ascii char *)
   let num_val chr =
     Char.code chr - Char.code '0'
   in
-  let rec find_len buf n =
-    let c = Cstruct.get_char buf 0 in
+  let rec find_len buffers n =
+    let c = cget_char buffers in
     if '\r' = c
-      then (Cstruct.shift buf 2, n)
-      else find_len (Cstruct.shift buf 1) (n*10 + num_val c)
-  in find_len buf 0
+      then (shift_buffers 2 buffers, n)
+      else find_len (shift_buffers 1 buffers) (n*10 + num_val c)
+  in find_len buffers 0
 
 
 (* parse a bulk string
- * - A "$" byte followed by the number of bytes composing the string (a prefixed length), terminated by CRLF.
+ * - A "$" byte followed by the number of bytes composing the string (a prefixed length),
+ *     terminated by CRLF.
  * - The actual string data.
  * - A final CRLF.
  * *)
-let parse_bulk_str (buf, len) =
-  let s = Cstruct.copy buf 0 len in
-  (Cstruct.shift buf (len+2)), String(s)
+let parse_bulk_str (buffers, len) =
+  let s = copy_buffers len buffers in
+  (shift_buffers (len + 2) buffers), String(s)
 
 
 (* get_resp_len parses the first line of a RESP request
  * returns (lines in request, offset from first line) *)
-let get_resp_len buf =
-  let astr = Cstruct.get_char buf 0 in
+let get_resp_len buffers =
+  let astr = cget_char buffers in
   if astr = '*'
-    then parse_num (Cstruct.shift buf 1)
-    else buf, 0
+    then parse_num (shift_buffers 1 buffers)
+    else buffers, 0
 
 
-let parse_ping buf =
-  if Cstruct.len buf >= 4
-    then if "PING" = String.uppercase(Cstruct.copy buf 0 4)
-      then (advance_past buf '\n'), PING
+let parse_ping buffers =
+  if blen buffers >= 4
+    then if "PING" = String.uppercase(copy_buffers 4 buffers)
+      then (advance_past buffers '\n'), PING
       else raise (Invalid_argument "ERR: inline text started with 'p' and was not PING")
     else raise (Invalid_argument "ERR: ping needs at least 4 characters")
 
 
 (* parse_request takes a cstruct and parses a
  *   command. *)
-let parse_request buf =
-  let rec parse_array aggr (buf, len) =
+let parse_request buffers =
+  let rec parse_array aggr (buffers, len) =
     if len = 0
-      then buf, Array(aggr)
+      then buffers, Array(aggr)
       else
-        let buf, arg = parse_arg buf in
-        parse_array (aggr @ [arg]) (buf, (len -1))
-  and parse_arg buf =
-      match Cstruct.get_char buf 0 with
-      | '*'       -> parse_num (Cstruct.shift buf 1) |> parse_array []
-      | '$'       -> parse_num (Cstruct.shift buf 1) |> parse_bulk_str
-      | 'p' | 'P' -> parse_ping buf
+        let buffers, arg = parse_arg buffers in
+        parse_array (aggr @ [arg]) (buffers, (len -1))
+  and parse_arg buffers =
+      match cget_char buffers with
+      | '*'       -> parse_num (shift_buffers 1 buffers) |> parse_array []
+      | '$'       -> parse_num (shift_buffers 1 buffers) |> parse_bulk_str
+      | 'p' | 'P' -> parse_ping buffers
       | _         -> raise (Invalid_argument "ERR: unrecognized command")
   in
-  let rec find_all_args buf aggr =
-    let buf, arg = parse_arg buf in
+  let rec find_all_args buffers aggr =
+    let buffers, arg = parse_arg buffers in
     let args = aggr @ [arg] in
-    if Cstruct.len buf > 0
-      then find_all_args buf args
-      else buf, args
+    if blen buffers > 0
+      then find_all_args buffers args
+      else buffers, args
   in
-  find_all_args buf []
+  find_all_args buffers []
 
 
 (* handle_get finds the requested value in the hashtable *)
@@ -201,14 +202,16 @@ let handle_mset args =
     else try establish args
       with Invalid_argument e -> ERROR e
 
+
 (* handle_flushdb should clear the hashtable *)
 let handle_flushdb = function
   | [] -> let () = Hashtbl.clear hashtable in OK
   | l -> ERROR "ERROR: command FLUSHDB does not take any arguments"
 
+
 (* handle_request forms a resp object based on the request *)
-let handle_request buf =
-  let buf, args = parse_request buf in
+let handle_request buffers =
+  let buffers, args = parse_request buffers in
   let form_request = function
     | String(s) :: a -> (
       match (String.uppercase s) with
@@ -264,6 +267,7 @@ let write_response r =
   (* translate all resp objects to strings and combine them *)
   r |> List.map serialize_resp |> String.concat ""
 
+
 (*
  * ================================================================================
  * ================================================================================
@@ -296,28 +300,31 @@ module Main (C: V1_LWT.CONSOLE) (S: V1_LWT.STACKV4) = struct
 
 
 
-  let rec tester flow = function
-    | []        -> S.TCPV4.close flow
-    | s :: rest ->
-      let () = print_endline (Printf.sprintf "=========== DATA =======") in
-      print_endline (Cstruct.to_string s); tester flow rest
-
-
-  let rec read_data flow aggr = function
-    | `Error _ | `Eof  ->
-        if List.length aggr = 0
-          then S.TCPV4.close flow
-          else tester flow aggr
-    | `Ok buf ->
-      let () = print_endline (Printf.sprintf "=========== READ %d =======" (List.length aggr)) in
-      if Cstruct.len buf = 1460
-        then S.TCPV4.read flow >>= (read_data flow (aggr @ [buf]))
-        else tester flow (aggr @ [buf])
-
 
   let rec handle c flow =
-    S.TCPV4.read flow >>= (read_data flow [])
+    S.TCPV4.read flow >>= (read_data c flow [])
 
+  and read_data c flow aggr = function
+    | `Error e -> handle_err_read c flow e
+    | `Eof  ->
+        if List.length aggr = 0
+          then S.TCPV4.close flow
+        else process_request c flow aggr
+    | `Ok buf ->
+      if Cstruct.len buf = 1460
+        then S.TCPV4.read flow >>= (read_data c flow (aggr @ [buf]))
+      else process_request c flow (aggr @ [buf])
+
+  and process_request c flow = function
+    | []   -> S.TCPV4.close flow
+    | bufs ->
+      let msg = bufs |> handle_request |> write_response |> string_to_cstruct in
+      S.TCPV4.write flow msg >>= (write_outcome c flow)
+
+  and write_outcome c flow = function
+    | `Ok ()   -> handle c flow
+    | `Eof     -> report_and_close c flow "Connection error during writing; closing."
+    | `Error _ -> report_and_close c flow "Connection error during writing; closing."
 
 (*
   let rec handle c flow =
