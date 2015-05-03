@@ -250,21 +250,47 @@ module Main (C: V1_LWT.CONSOLE) (S: V1_LWT.STACKV4) = struct
     in report_and_close c flow message
 
 
+
+  let rec tester flow = function
+    | []        -> S.TCPV4.close flow
+    | s :: rest ->
+      let () = print_endline (Printf.sprintf "=========== DATA =======") in
+      print_endline (Cstruct.to_string s); tester flow rest
+
+
+  let rec read_data flow aggr = function
+    | `Error _ | `Eof  ->
+        if List.length aggr = 0
+          then S.TCPV4.close flow
+          else tester flow aggr
+    | `Ok buf ->
+      let () = print_endline (Printf.sprintf "=========== READ %d =======" (List.length aggr)) in
+      if Cstruct.len buf = 1460
+        then S.TCPV4.read flow >>= (read_data flow (aggr @ [buf]))
+        else tester flow (aggr @ [buf])
+
+
   let rec handle c flow =
-    S.TCPV4.read flow >>= read_outcome c flow
+    S.TCPV4.read flow >>= (read_data flow [])
+
+
+(*
+  let rec handle c flow =
+    S.TCPV4.read flow >>= (read_outcome c flow)
 
   and read_outcome c flow = function
     | `Eof     -> S.TCPV4.close flow
     | `Error e -> handle_err_read c flow e
     | `Ok buf  ->
+      let _ = C.log_s c (Cstruct.len buf |> string_of_int) in
       let msg = buf |> handle_request |> write_response |> string_to_cstruct in
-      S.TCPV4.write flow msg >>= write_outcome c flow
+      S.TCPV4.write flow msg >>= (write_outcome c flow)
 
   and write_outcome c flow = function
     | `Ok ()   -> handle c flow
     | `Eof     -> report_and_close c flow "Connection error during writing; closing."
     | `Error _ -> report_and_close c flow "Connection error during writing; closing."
-
+*)
 
   let start c s =
     S.listen_tcpv4 s ~port:6379 (handle c);
