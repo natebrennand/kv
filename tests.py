@@ -7,13 +7,18 @@ r = 100000
 pipeline = yes/no
 """
 
-ip = "192.168.3.11"
+ip = "128.59.21.192"
 
 tests = {'ping','get','set','mset','mget'}
-
-for n in [10**6, 5 * 10**6, 30 * 10**6]:
-    for c in [10, 100, 500]:
-        for p in [0, 3]:
+for n in [10**6, 5 * 10**6, 10**7, 5*10**7]:
+    for c in [10, 100, 500, 1000]:
+        for p in [1, 10, 50]:
             print ("redis-benchmark -h {ip} -t {tests} -c "
-                   "{c} -n {n} -d 5 -P {p}".format(c=c, n=n, p=p, ip=ip, tests="".join(tests)))
+                   "{c} -n {n} -d 20 -r {r} -P {p}".format(
+                       r=max(n/100,1),
+                       c=c,
+                       n=n,
+                       p=p,
+                       ip=ip,
+                       tests=",".join(tests)))
 
