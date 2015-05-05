@@ -10,22 +10,22 @@
 
 \title{A Unikernel Key-Value Store}
 \author{Nate Brennand, Gudbergur Erlendsson, Mishail Tupas}
-\date{}
+\date{April 7, 2015}
 \maketitle
 \thispagestyle{empty}
 
 
 \begin{abstract}
 Traditional web infrastructure models consist of a cluster of heavyweight full stack virtual machines usually running a variant of Linux.
-This provides a simple consistent platform for developers to write their applications against but it has many downfalls in the resource overhead of running virtual machines.
-Key-value datastores are a common component of web insfrastructure.
+This provides a simple consistent platform for developers to write their applications against but running a full stack machine on top of a hypervisor has a lot of resource overhead.
+Key-value datastores are a common component of web infrastructure.
 We've designed a Mirage OS\cite{mirage} unikernel implementation of the popular Redis\cite{redis} in-memory key-value store that allows fast creation and deployment of the datastore as well as ease scaling up the allocated resources.
 Applications developed with MirageOS can be deployed directly on the Xen hypervisor.
 We describe the advantages and disadvantages that come with such a system.
 We highlight the performance characteristics of this new approach in comparison to Redis.
 
-Preliminary results show comparable performance.
-We expect with more profiling we can identify the hotspots in our codebase and garner better performance from the Kayvee implementation.
+Preliminary results showed lower-than-expected performance.
+We expect with more profiling and testing we can identify the hotspots in our codebase and garner better performance from the Keyvee implementation.
 \end{abstract}
 
 
@@ -35,14 +35,14 @@ While these applications are known for their great performance, research has sho
 This issue is amplified by the lack of stability in allocated resources when running on Linux itself which is prone to performance dips when the resource scheduler is not coordinated.
 
 We believe that the approach of moving the key-value datastore to a unikernel implementation will yield greater and more reliable performance.
-A unikernel is a specialzed application capable of running directly on top of bare-metal or a hypervisor without a host operating system.
+A unikernel is a specialized application capable of running directly on top of bare-metal or a hypervisor without a host operating system.
 The unikernel approach lacks many of the performance issues plaguing Redis that cannot be resolved at the application level.
-We build on top of the Mirage OS\cite{mirage}, an OCaml based library operating system.
+We build on top of the MirageOS\cite{mirage}, an OCaml based library operating system.
 MirageOS provides correctness due to the strongly-typed nature of OCaml, this yields very reliable code.
 
-We measure the performance characteristics of Redis in multiple situations: networked and on-host, to yield a direct comparison to our implementation, Kayvee.
-Kayvee speaks the Redis Serialization Protocol\cite{redis-protocol}, RESP, which makes Kayvee a drop in replacement for Redis in any deployment utilizing the Xen Hypervisor.
-We hope this compatibility will allow Kayvee to help establish unikernels as a viable piece of web application infrastructure.
+We measure the performance characteristics of Redis in multiple situations: networked and on-host, to yield a direct comparison to our implementation, Keyvee.
+Keyvee speaks the Redis Serialization Protocol\cite{redis-protocol}, RESP, which makes Keyvee a drop in replacement for Redis in any deployment utilizing the Xen Hypervisor.
+We hope this compatibility will allow Keyvee to help establish unikernels as a viable piece of web application infrastructure.
 
 
 \section{Background}
@@ -59,34 +59,33 @@ For applications running on a host, such as Linux, Xen has no impact on the impl
 
 \subsection{Redis}
 
-Redis is a data structure server.
-Working set and all data is in-memory at all times and there is optional durability, using append-only log files.
-Redis is the most popular key-value store in industry\cite{dbengines}.
+Redis is a data structure server and is the most popular key-value store in industry\cite{dbengines}.
+Its working set and all of its data is in-memory at all times, and there is optional durability using append-only log files.
 It has various applications in server infrastructure, including caching, inter-server communication, queues etc.
 Redis maps keys to numerous types of values, including strings (supported by Keyvee) as well as lists of strings, sets of strings, hash tables etc.
 Redis has support for master-slave replication, and allows slaves to be masters to other slaves, enabling Redis to implement single-rooted replication tree.
-When durability is not needed, Redis is very performant although according to tests it has been shown to spend upward of 84\% of it's processing in kernel space, meaning there is some space to improve it's performance \cite{latency}.
+When durability is not needed, Redis is very performant, although according to tests it has been shown to spend upward of 84\% of it's processing in kernel space, meaning there is some space to improve it's performance \cite{latency}.
 
 
-\subsection{Mirage OS}
+\subsection{MirageOS}
 
-Mirage OS is an OCaml based library operating system that compiles to a Xen hypervisor image.
+MirageOS is an OCaml-based library operating system from the Xen project that compiles to a Xen hypervisor image.
 This approach yields several performance and implementation benefits.
 Mirage applications are entirely type-safe due to the strong typing of OCaml, they also have a very compact size due to the lack of structural libraries that must be included.
 Also, with the lack of an operating system interface layer, Mirage applications achieve top-notch performance as there is no additional layer in the IO pipeline or scheduler to delay the application's execution.
 
 \begin{figure}[ht]
   \centering
-  \caption{Mirage OS architecture}
+  \caption{MirageOS architecture}
   \includegraphics[width=0.5\textwidth]{images/design}
 \end{figure}
 
-Thanks to a simple runtime, OCaml, an expressive functional systems programming language, was a good fit for the Mirage project to reimplement the runtime in an image that would run on Xen.
-The strictness of OCaml's type system ensures that programs are respect with regard to variable datatypes prior to compilation, because of this strictness the executable is able to shed all type checking which yields fast native code with performance comparable to C.
+Thanks to its simple runtime, OCaml, an expressive functional systems programming language, was a good fit for the Mirage project, and was used to re\-implement the runtime in an image that would run on Xen.
+The strictness of OCaml's type system ensures that programs are respect with regard to variable data types prior to compilation, because of this strictness the executable is able to shed all type checking which yields fast native code with performance comparable to C.
 
-As highlighted in figure 1, unikernels have a greatly reduced overhead when accessing resources relative to an application running on Linux.
-This approach brings some great benefits like zero\-copy IO and no scheduler\-induced delay in response.
-These performance improvements are important in high throughput and low latency applications like key\-value datastores.
+As highlighted in Figure 1, unikernels have a greatly reduced overhead when accessing resources relative to an application running on Linux.
+This approach brings some great benefits like zero-copy IO and no scheduler-induced delay in response.
+These performance improvements are important in high throughput and low latency applications like key-value datastores.
 However, this approach does have downfalls such as Mirage's limit to a single virtual machine per core; this limitation means that certain applications that require access to multiple physical threads will not fit the Mirage programming model.
 For applications that do not need multiple physical threads but need asynchronous IO, Mirage has a lightweight cooperative threading, LWT, library that provides simple constructs for asynchronous code.
 
@@ -102,20 +101,20 @@ This aspect, combined with the type-safety OCaml provides eliminates entire clas
 
 \subsection{Related Work}
 
-HaLVM\cite{halvm} and LING\cite{ling} are both alternatives to Mirage OS, using Haskell and Erlang respectively as the basis of their unikernel efforts.
+HaLVM\cite{halvm} and LING\cite{ling} are both alternatives to MirageOS, using Haskell and Erlang respectively as the basis of their unikernel efforts.
 Each of the unikernel implementations: HaLVM, LING and Mirage, share the trait that you are limited to one functional language exclusively and compile into an image to run on top of the Xen hypervisor.
-Mirage OS and LING focuses on performance and predictability while HalVM focuses more on elegant compositional semantics using Haskell, according to the authors\cite{tripreport}.
+MirageOS and LING focuses on performance and predictability while HalVM focuses more on elegant compositional semantics using Haskell, according to the authors\cite{tripreport}.
 Low level libraries are being implemented for the platforms in their native code, so while the work is ongoing the level of support varies.
-Mirage OS for examples uses OCaml-DNS, Mirage-TCPIP and other libraries. It also has a relatively advanced TLS library (OCaml-TLS) and better support for encrypted traffic then the other two library operating systems mentioned earlier.
+MirageOS for examples uses OCaml-DNS, Mirage-TCPIP and other libraries. It also has a relatively advanced TLS library (OCaml-TLS) and better support for encrypted traffic then the other two library operating systems mentioned earlier.
 
 OSv\cite{osv} is another variant to the special-purpose operating system using the library OS paradigm, mostly based on code from BSD.
 In OSv everything runs in the kernel space and it's built to run as guest on top of a virtual machine.
-However, it support Linux ABI, and contains necessary functionality to run Java and POSIX applications which allows OSv to run some existing codebases and get some of the performance benefit Mirage enjoys.
+However, it supports Linux ABI, and contains necessary functionality to run Java and POSIX applications which allows OSv to run some existing codebases and get some of the performance benefit Mirage enjoys, but not increased security.
 To get zero-copy I/O specific non-POSIX OSv API's need to be used.
-Mirage however focuses on a toolkit to assemble new unikernel application without specific domain knowledge in kernel programming for example.
+Mirage however does not focus on support for legacy applications but rather focuses on a toolkit to assemble new unikernel applications without specific domain knowledge in kernel programming.
 
-Arrakis\cite{arrakis}, SPIN\cite{spin} and Exokernel\cite{exokernel} all reduce shared kernel components and allow each application to have customized operating system management, achieving some of the increased performance benefit of Mirage OS without tying you to one language runtime.
-Arrakis in particular benefits from increased support for virtualization in new hardware, which allows it to effectively run all applications in kernel space and achieve seperation using hardware instructions, similar to how Mirage OS achieves seperation through Xen.
+Arrakis\cite{arrakis}, SPIN\cite{spin} and Exokernel\cite{exokernel} all reduce shared kernel components and allow each application to have customized operating system management, achieving some of the increased performance benefit of MirageOS without tying you to one language runtime.
+Arrakis in particular benefits from increased support for virtualization in new hardware, which allows it to effectively run all applications in kernel space and achieve separation using hardware instructions, similar to how MirageOS achieves separation through Xen.
 
 
 
@@ -123,7 +122,7 @@ Arrakis in particular benefits from increased support for virtualization in new 
 \section{Design and Implementation}
 For Keyvee we have the following goals:
 \begin{itemize}
-  \item Implement subset of Redis functionality in OCaml on top of the Mirage OS toolchain
+  \item Implement subset of Redis functionality in OCaml on top of the MirageOS toolchain
   \item Make Keyvee's as compatible to Redis as possible.
   \item Implement RESP, Redis's protocol specification, to allow interoperability with existing tools and libraries.
 \end{itemize}
@@ -138,7 +137,7 @@ Here in this section we will talk about our implementation of Keyvee and how we 
   \includegraphics[width=0.5\textwidth]{images/commands}
 \end{figure}
 
-Keyvee is implemented on top of the Mirage OS toolchain using OCaml.
+Keyvee is implemented on top of the MirageOS toolchain using OCaml.
 Currently, we support the GET, SET and DEL commands.
 All data is stored in-memory, similar to Redis.
 We have an internal module implementation built on top of OCaml's Hashtbl module, which stores our keys and associated data in an efficient lookup table.
@@ -147,8 +146,8 @@ This means the hash function is randomly selected among 230 different hash funct
 
 We use MirageOS's low level TCP/IP network stack implemented in pure OCaml.
 Because memory layout in Mirage is used to distinguish I/O pages, the OCaml garbage collector needs to scan less to be as effective as in a full stack OS, which let's the network stack perform predictably.
-Predictable performance, as well as support for zero-copy I/O makes Mirage's network stack performant.
-The stack then hands off the raw data to our parse functions, which parse the data using string operations.
+Predictable performance, as well as support for zero-copy I/O makes Mirage's network stack more performant than traditional full stack OS.
+The network stack then hands off the raw data to our parse functions, which parse the data using string operations.
 The parse functions fully support well formed queries for our supported functions, but lack some verification steps and will not respond to badly formed queries.
 After the parse phase, the data is handed off to the Hashtbl module which responds with data or writes data.
 The response is then written to the client in RESP compatible format.
@@ -162,14 +161,14 @@ We use distributed version control system Git and Github to track changes to our
 Travis Continuous Integration is then used to build our codebase when changes are made and check for any errors.
 It is possible to build a Unix binary using the Mirage toolchain, which we use extensively when developing our code before it is deployed and tested on the Xen server.
 
-The Mirage OS documentation leaves a lot to be desired and a lot of times we needed to go looking into Mirage OS's implementation it self.
+The MirageOS documentation leaves a lot to be desired and many times we needed to go looking into MirageOS's implementation it self.
 In addition, some OCaml modules do not work with the toolchain and there is scarcity of open source code built with it.
 Especially as it is the early days there is not a lot of community support surrounding Mirage.
 
 
 \section{Evaluation}
 
-We performed all of our evaulations on a dedicated 8\-core HP ProLiant rack server with 16 GB RAM available.
+We performed all of our evaluations on a dedicated 8-core HP ProLiant rack server with 16 GB RAM available.
 Our Xen hypervisor installation is coordinated by a Ubuntu Server 14.04 host that serves as the management domain to manage the other hosts running on the Hypervisor.
 The Mirage installation was modified to use Redis's communication protocols so that we could use the same benchmark for all test setups. The benchmark was run using 50 parallel clients sending a 3-byte payload.
 The Redis setups were given ten thousands requests as part of their benchmark, while the Mirage setups on Xen were given five hundred, one thousand, or ten thousand requests.
@@ -177,7 +176,7 @@ The Redis setups were given ten thousands requests as part of their benchmark, w
 
 \subsection{Running Mirage}
 
-When a Mirage OS unikernel is configured in Xen mode, both the unikernel image and the configuration file are generated.
+When a MirageOS unikernel is configured in Xen mode, both the unikernel image and the configuration file are generated.
 With these, a unikernel can be easily launched using the xl Xen management tool.
 Due to the small size of the image, this is a quick process where the Mirage image configures itself when started by xl.
 
@@ -185,11 +184,11 @@ Due to the small size of the image, this is a quick process where the Mirage ima
 \subsection{Network Overhead}
 
 On examining the throughput and the completion times for requests between running the benchmark between two hosts, we found that there was a significant overhead imposed by network communications. For SET operations there was an increase of 42\% in execution time and GET operations saw a similar 43\% increase in execution time.
-The benchmark results for the Mirage OS installation were found to have throughputs an order of magnitude lower than expected.
+The benchmark results for the MirageOS installation were found to have throughputs an order of magnitude lower than expected.
 Upon further testing and examination of code, it found that that the Mirage systems were not properly handling multiple simultaneous clients, resulting in a very low throughput which was noticed in further tests.
 
 
-\subsection{Mirage \- UNIX}
+\subsection{Mirage - UNIX}
 
 Three different benchmarks setups were tested, making either five hundred, one thousand, or ten thousand total requests.
 Similarly to the tests run on the Mirage installations that were on top of Xen, the throughput was also an order of magnitude lower when compared to Redis. 
@@ -222,7 +221,7 @@ Corrections to the Keyvee implementation are underway so that a fair benchmark c
 
 \section{Conclusion}
 In this paper we described the implementation and evaluation of our unikernel key-value store, Keyvee.
-Our efforts are concentrated around implementing a subset of Redis's functionality using OCaml and the Mirage OS toolchain.
+Our efforts are concentrated around implementing a subset of Redis's functionality using OCaml and the MirageOS toolchain.
 We then evaluated our implementation and compared it with Redis using Redis's benchmarking tool.
 Initial results revealed that, even when taking into account networking overhead, our unikernel implementation performed extremely poorly in both a Xen enviroment and a Unix installed environment.
 The main source of the low throughput was identified as an issue with handling the TCP clients used for benchmarking, resulting in a loss of parallelization.
