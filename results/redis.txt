@@ -1,4 +1,4 @@
-====== PING_INLINE ======
+====== PING_INLINE (pipeline 1) ======
   1000000 requests completed in 37.81 seconds
   10 parallel clients
   20 bytes payload
@@ -9,7 +9,7 @@
 100.00% <= 2 milliseconds
 26451.53 requests per second
 
-====== PING_BULK ======
+====== PING_BULK (pipeline 1) ======
   1000000 requests completed in 37.54 seconds
   10 parallel clients
   20 bytes payload
@@ -21,7 +21,7 @@
 100.00% <= 3 milliseconds
 26635.42 requests per second
 
-====== SET ======
+====== SET (pipeline 1) ======
   1000000 requests completed in 38.10 seconds
   10 parallel clients
   20 bytes payload
@@ -33,7 +33,7 @@
 100.00% <= 3 milliseconds
 26243.96 requests per second
 
-====== GET ======
+====== GET (pipeline 1) ======
   1000000 requests completed in 38.33 seconds
   10 parallel clients
   20 bytes payload
@@ -45,7 +45,7 @@
 100.00% <= 3 milliseconds
 26091.95 requests per second
 
-====== MSET (10 keys) ======
+====== MSET (10 keys) (pipeline 1) ======
   1000000 requests completed in 38.74 seconds
   10 parallel clients
   20 bytes payload
@@ -56,8 +56,7 @@
 100.00% <= 2 milliseconds
 25810.45 requests per second
 
-
-====== PING_INLINE ======
+====== PING_INLINE (pipeline 10) ======
   1000000 requests completed in 6.86 seconds
   10 parallel clients
   20 bytes payload
@@ -68,7 +67,7 @@
 100.00% <= 2 milliseconds
 145878.92 requests per second
 
-====== PING_BULK ======
+====== PING_BULK (pipeline 10) ======
   1000000 requests completed in 6.03 seconds
   10 parallel clients
   20 bytes payload
@@ -78,7 +77,7 @@
 100.00% <= 1 milliseconds
 165782.48 requests per second
 
-====== SET ======
+====== SET (pipeline 10) ======
   1000000 requests completed in 6.45 seconds
   10 parallel clients
   20 bytes payload
@@ -91,7 +90,7 @@
 100.00% <= 4 milliseconds
 155086.84 requests per second
 
-====== GET ======
+====== GET (pipeline 10) ======
   1000000 requests completed in 6.05 seconds
   10 parallel clients
   20 bytes payload
@@ -102,7 +101,7 @@
 100.00% <= 2 milliseconds
 165180.05 requests per second
 
-====== MSET (10 keys) ======
+====== MSET (10 keys) (pipeline 10) ======
   1000000 requests completed in 14.88 seconds
   10 parallel clients
   20 bytes payload
@@ -115,8 +114,7 @@
 100.00% <= 4 milliseconds
 67204.30 requests per second
 
-
-====== PING_INLINE ======
+====== PING_INLINE (pipeline 50) ======
   1000000 requests completed in 3.72 seconds
   10 parallel clients
   20 bytes payload
@@ -130,7 +128,7 @@
 100.00% <= 5 milliseconds
 268889.47 requests per second
 
-====== PING_BULK ======
+====== PING_BULK (pipeline 50) ======
   1000000 requests completed in 3.42 seconds
   10 parallel clients
   20 bytes payload
@@ -144,7 +142,7 @@
 100.00% <= 5 milliseconds
 291970.81 requests per second
 
-====== SET ======
+====== SET (pipeline 50) ======
   1000000 requests completed in 4.45 seconds
   10 parallel clients
   20 bytes payload
@@ -162,7 +160,7 @@
 100.00% <= 11 milliseconds
 224719.11 requests per second
 
-====== GET ======
+====== GET (pipeline 50) ======
   1000000 requests completed in 4.26 seconds
   10 parallel clients
   20 bytes payload
@@ -174,7 +172,7 @@
 100.00% <= 3 milliseconds
 234962.41 requests per second
 
-====== MSET (10 keys) ======
+====== MSET (10 keys) (pipeline 50) ======
   1000000 requests completed in 12.14 seconds
   10 parallel clients
   20 bytes payload
@@ -191,8 +189,7 @@
 100.00% <= 11 milliseconds
 82358.75 requests per second
 
-
-====== PING_INLINE ======
+====== PING_INLINE (pipeline 1) ======
   1000000 requests completed in 33.02 seconds
   100 parallel clients
   20 bytes payload
@@ -229,7 +226,7 @@
 100.00% <= 34 milliseconds
 30288.35 requests per second
 
-====== PING_BULK ======
+====== PING_BULK (pipeline 1) ======
   1000000 requests completed in 37.33 seconds
   100 parallel clients
   20 bytes payload
@@ -244,7 +241,7 @@
 100.00% <= 6 milliseconds
 26784.52 requests per second
 
-====== SET ======
+====== SET (pipeline 1) ======
   1000000 requests completed in 38.24 seconds
   100 parallel clients
   20 bytes payload
@@ -267,7 +264,7 @@
 100.00% <= 14 milliseconds
 26152.68 requests per second
 
-====== GET ======
+====== GET (pipeline 1) ======
   1000000 requests completed in 38.36 seconds
   100 parallel clients
   20 bytes payload
@@ -285,7 +282,7 @@
 100.00% <= 10 milliseconds
 26071.54 requests per second
 
-====== MSET (10 keys) ======
+====== MSET (10 keys) (pipeline 1) ======
   1000000 requests completed in 35.28 seconds
   100 parallel clients
   20 bytes payload
@@ -304,8 +301,7 @@
 100.00% <= 11 milliseconds
 28347.88 requests per second
 
-
-====== PING_INLINE ======
+====== PING_INLINE (pipeline 10) ======
   1000000 requests completed in 5.53 seconds
   100 parallel clients
   20 bytes payload
@@ -339,7 +335,7 @@
 100.00% <= 51 milliseconds
 180864.53 requests per second
 
-====== PING_BULK ======
+====== PING_BULK (pipeline 10) ======
   1000000 requests completed in 5.13 seconds
   100 parallel clients
   20 bytes payload
@@ -384,7 +380,7 @@
 100.00% <= 67 milliseconds
 194893.78 requests per second
 
-====== SET ======
+====== SET (pipeline 10) ======
   1000000 requests completed in 6.26 seconds
   100 parallel clients
   20 bytes payload
@@ -428,7 +424,7 @@
 100.00% <= 81 milliseconds
 159821.00 requests per second
 
-====== GET ======
+====== GET (pipeline 10) ======
   1000000 requests completed in 5.53 seconds
   100 parallel clients
   20 bytes payload
@@ -471,7 +467,7 @@
 100.00% <= 72 milliseconds
 180897.25 requests per second
 
-====== MSET (10 keys) ======
+====== MSET (10 keys) (pipeline 10) ======
   1000000 requests completed in 15.46 seconds
   100 parallel clients
   20 bytes payload
@@ -509,8 +505,7 @@
 100.00% <= 93 milliseconds
 64691.42 requests per second
 
-
-====== PING_INLINE ======
+====== PING_INLINE (pipeline 50) ======
   1000000 requests completed in 3.64 seconds
   100 parallel clients
   20 bytes payload
@@ -568,7 +563,7 @@
 100.00% <= 187 milliseconds
 275027.50 requests per second
 
-====== PING_BULK ======
+====== PING_BULK (pipeline 50) ======
   1000000 requests completed in 3.29 seconds
   100 parallel clients
   20 bytes payload
@@ -624,7 +619,7 @@
 100.00% <= 201 milliseconds
 303766.69 requests per second
 
-====== SET ======
+====== SET (pipeline 50) ======
   1000000 requests completed in 4.56 seconds
   100 parallel clients
   20 bytes payload
@@ -683,7 +678,7 @@
 100.00% <= 181 milliseconds
 219106.05 requests per second
 
-====== GET ======
+====== GET (pipeline 50) ======
   1000000 requests completed in 3.98 seconds
   100 parallel clients
   20 bytes payload
@@ -738,7 +733,7 @@
 100.00% <= 212 milliseconds
 251067.03 requests per second
 
-====== MSET (10 keys) ======
+====== MSET (10 keys) (pipeline 50) ======
   1000000 requests completed in 13.88 seconds
   100 parallel clients
   20 bytes payload
@@ -791,8 +786,7 @@
 100.00% <= 110 milliseconds
 72046.11 requests per second
 
-
-====== PING_INLINE ======
+====== PING_INLINE (pipeline 1) ======
   1000000 requests completed in 33.51 seconds
   500 parallel clients
   20 bytes payload
@@ -851,7 +845,7 @@
 100.00% <= 217 milliseconds
 29843.62 requests per second
 
-====== PING_BULK ======
+====== PING_BULK (pipeline 1) ======
   1000000 requests completed in 36.70 seconds
   500 parallel clients
   20 bytes payload
@@ -885,7 +879,7 @@
 100.00% <= 37 milliseconds
 27248.70 requests per second
 
-====== SET ======
+====== SET (pipeline 1) ======
   1000000 requests completed in 39.29 seconds
   500 parallel clients
   20 bytes payload
@@ -921,7 +915,7 @@
 100.00% <= 39 milliseconds
 25451.77 requests per second
 
-====== GET ======
+====== GET (pipeline 1) ======
   1000000 requests completed in 38.62 seconds
   500 parallel clients
   20 bytes payload
@@ -958,7 +952,7 @@
 100.00% <= 36 milliseconds
 25893.32 requests per second
 
-====== MSET (10 keys) ======
+====== MSET (10 keys) (pipeline 1) ======
   1000000 requests completed in 38.86 seconds
   500 parallel clients
   20 bytes payload
@@ -993,8 +987,7 @@
 100.00% <= 31 milliseconds
 25735.39 requests per second
 
-
-====== PING_INLINE ======
+====== PING_INLINE (pipeline 10) ======
   1000000 requests completed in 5.29 seconds
   500 parallel clients
   20 bytes payload
@@ -1042,7 +1035,7 @@
 100.00% <= 232 milliseconds
 189035.92 requests per second
 
-====== PING_BULK ======
+====== PING_BULK (pipeline 10) ======
   1000000 requests completed in 5.05 seconds
   500 parallel clients
   20 bytes payload
@@ -1088,7 +1081,7 @@
 100.00% <= 42 milliseconds
 197902.23 requests per second
 
-====== SET ======
+====== SET (pipeline 10) ======
   1000000 requests completed in 6.56 seconds
   500 parallel clients
   20 bytes payload
@@ -1165,7 +1158,7 @@
 100.00% <= 600 milliseconds
 152346.12 requests per second
 
-====== GET ======
+====== GET (pipeline 10) ======
   1000000 requests completed in 5.68 seconds
   500 parallel clients
   20 bytes payload
@@ -1215,7 +1208,7 @@
 100.00% <= 91 milliseconds
 176180.41 requests per second
 
-====== MSET (10 keys) ======
+====== MSET (10 keys) (pipeline 10) ======
   1000000 requests completed in 15.63 seconds
   500 parallel clients
   20 bytes payload
@@ -1333,8 +1326,7 @@
 100.00% <= 127 milliseconds
 63991.81 requests per second
 
-
-====== PING_INLINE ======
+====== PING_INLINE (pipeline 50) ======
   1000000 requests completed in 3.80 seconds
   500 parallel clients
   20 bytes payload
@@ -1462,7 +1454,7 @@
 100.00% <= 1278 milliseconds
 263435.19 requests per second
 
-====== PING_BULK ======
+====== PING_BULK (pipeline 50) ======
   1000000 requests completed in 3.46 seconds
   500 parallel clients
   20 bytes payload
@@ -1591,7 +1583,7 @@
 100.00% <= 1107 milliseconds
 288933.84 requests per second
 
-====== SET ======
+====== SET (pipeline 50) ======
   1000000 requests completed in 4.54 seconds
   500 parallel clients
   20 bytes payload
@@ -1712,7 +1704,7 @@
 100.00% <= 190 milliseconds
 220264.31 requests per second
 
-====== GET ======
+====== GET (pipeline 50) ======
   1000000 requests completed in 4.08 seconds
   500 parallel clients
   20 bytes payload
@@ -1832,7 +1824,7 @@
 100.00% <= 1056 milliseconds
 244917.94 requests per second
 
-====== MSET (10 keys) ======
+====== MSET (10 keys) (pipeline 50) ======
   1000000 requests completed in 13.05 seconds
   500 parallel clients
   20 bytes payload
@@ -1949,8 +1941,7 @@
 100.00% <= 369 milliseconds
 76657.73 requests per second
 
-
-====== PING_INLINE ======
+====== PING_INLINE (pipeline 1) ======
   1000000 requests completed in 43.00 seconds
   1000 parallel clients
   20 bytes payload
@@ -1999,7 +1990,7 @@
 100.00% <= 234 milliseconds
 23255.27 requests per second
 
-====== PING_BULK ======
+====== PING_BULK (pipeline 1) ======
   1000000 requests completed in 47.57 seconds
   1000 parallel clients
   20 bytes payload
@@ -2041,7 +2032,7 @@
 100.00% <= 44 milliseconds
 21020.33 requests per second
 
-====== SET ======
+====== SET (pipeline 1) ======
   1000000 requests completed in 46.35 seconds
   1000 parallel clients
   20 bytes payload
@@ -2103,7 +2094,7 @@
 100.00% <= 73 milliseconds
 21575.90 requests per second
 
-====== GET ======
+====== GET (pipeline 1) ======
   1000000 requests completed in 49.01 seconds
   1000 parallel clients
   20 bytes payload
@@ -2163,7 +2154,7 @@
 100.00% <= 228 milliseconds
 20401.92 requests per second
 
-====== MSET (10 keys) ======
+====== MSET (10 keys) (pipeline 1) ======
   1000000 requests completed in 44.63 seconds
   1000 parallel clients
   20 bytes payload
@@ -2245,8 +2236,7 @@
 100.00% <= 266 milliseconds
 22406.45 requests per second
 
-
-====== PING_INLINE ======
+====== PING_INLINE (pipeline 10) ======
   1000000 requests completed in 6.51 seconds
   1000 parallel clients
   20 bytes payload
@@ -2343,7 +2333,7 @@
 100.00% <= 139 milliseconds
 153491.94 requests per second
 
-====== PING_BULK ======
+====== PING_BULK (pipeline 10) ======
   1000000 requests completed in 5.84 seconds
   1000 parallel clients
   20 bytes payload
@@ -2426,7 +2416,7 @@
 100.00% <= 293 milliseconds
 171115.67 requests per second
 
-====== SET ======
+====== SET (pipeline 10) ======
   1000000 requests completed in 7.82 seconds
   1000 parallel clients
   20 bytes payload
@@ -2539,7 +2529,7 @@
 100.00% <= 150 milliseconds
 127860.88 requests per second
 
-====== GET ======
+====== GET (pipeline 10) ======
   1000000 requests completed in 6.86 seconds
   1000 parallel clients
   20 bytes payload
@@ -2628,7 +2618,7 @@
 100.00% <= 289 milliseconds
 145815.11 requests per second
 
-====== MSET (10 keys) ======
+====== MSET (10 keys) (pipeline 10) ======
   1000000 requests completed in 16.15 seconds
   1000 parallel clients
   20 bytes payload
@@ -2774,8 +2764,7 @@
 100.00% <= 262 milliseconds
 61934.84 requests per second
 
-
-====== PING_INLINE ======
+====== PING_INLINE (pipeline 50) ======
   1000000 requests completed in 3.94 seconds
   1000 parallel clients
   20 bytes payload
@@ -2937,7 +2926,7 @@
 100.00% <= 396 milliseconds
 254000.50 requests per second
 
-====== PING_BULK ======
+====== PING_BULK (pipeline 50) ======
   1000000 requests completed in 3.56 seconds
   1000 parallel clients
   20 bytes payload
@@ -3081,7 +3070,7 @@
 100.00% <= 263 milliseconds
 281214.84 requests per second
 
-====== SET ======
+====== SET (pipeline 50) ======
   1000000 requests completed in 4.70 seconds
   1000 parallel clients
   20 bytes payload
@@ -3284,7 +3273,7 @@
 100.00% <= 365 milliseconds
 212901.84 requests per second
 
-====== GET ======
+====== GET (pipeline 50) ======
   1000000 requests completed in 4.17 seconds
   1000 parallel clients
   20 bytes payload
@@ -3463,7 +3452,7 @@
 100.00% <= 317 milliseconds
 239578.36 requests per second
 
-====== MSET (10 keys) ======
+====== MSET (10 keys) (pipeline 50) ======
   1000000 requests completed in 13.56 seconds
   1000 parallel clients
   20 bytes payload
@@ -3686,8 +3675,7 @@
 100.00% <= 831 milliseconds
 73768.08 requests per second
 
-
-====== PING_INLINE ======
+====== PING_INLINE (pipeline 1) ======
   5000000 requests completed in 188.45 seconds
   10 parallel clients
   20 bytes payload
@@ -3701,7 +3689,7 @@
 100.00% <= 203 milliseconds
 26532.10 requests per second
 
-====== PING_BULK ======
+====== PING_BULK (pipeline 1) ======
   5000000 requests completed in 189.35 seconds
   10 parallel clients
   20 bytes payload
@@ -3714,7 +3702,7 @@
 100.00% <= 8 milliseconds
 26406.82 requests per second
 
-====== SET ======
+====== SET (pipeline 1) ======
   5000000 requests completed in 192.70 seconds
   10 parallel clients
   20 bytes payload
@@ -3731,7 +3719,7 @@
 100.00% <= 8 milliseconds
 25947.74 requests per second
 
-====== GET ======
+====== GET (pipeline 1) ======
   5000000 requests completed in 190.20 seconds
   10 parallel clients
   20 bytes payload
@@ -3745,7 +3733,7 @@
 100.00% <= 201 milliseconds
 26288.26 requests per second
 
-====== MSET (10 keys) ======
+====== MSET (10 keys) (pipeline 1) ======
   5000000 requests completed in 203.37 seconds
   10 parallel clients
   20 bytes payload
@@ -3764,8 +3752,7 @@
 100.00% <= 11 milliseconds
 24585.61 requests per second
 
-
-====== PING_INLINE ======
+====== PING_INLINE (pipeline 10) ======
   5000000 requests completed in 32.50 seconds
   10 parallel clients
   20 bytes payload
@@ -3781,7 +3768,7 @@
 100.00% <= 8 milliseconds
 153831.97 requests per second
 
-====== PING_BULK ======
+====== PING_BULK (pipeline 10) ======
   5000000 requests completed in 30.71 seconds
   10 parallel clients
   20 bytes payload
@@ -3795,7 +3782,7 @@
 100.00% <= 5 milliseconds
 162792.20 requests per second
 
-====== SET ======
+====== SET (pipeline 10) ======
   5000000 requests completed in 34.20 seconds
   10 parallel clients
   20 bytes payload
@@ -3811,7 +3798,7 @@
 100.00% <= 7 milliseconds
 146190.28 requests per second
 
-====== GET ======
+====== GET (pipeline 10) ======
   5000000 requests completed in 30.54 seconds
   10 parallel clients
   20 bytes payload
@@ -3822,7 +3809,7 @@
 100.00% <= 2 milliseconds
 163714.34 requests per second
 
-====== MSET (10 keys) ======
+====== MSET (10 keys) (pipeline 10) ======
   5000000 requests completed in 83.72 seconds
   10 parallel clients
   20 bytes payload
@@ -3848,8 +3835,7 @@
 100.00% <= 23 milliseconds
 59721.46 requests per second
 
-
-====== PING_INLINE ======
+====== PING_INLINE (pipeline 50) ======
   5000000 requests completed in 19.52 seconds
   10 parallel clients
   20 bytes payload
@@ -3866,7 +3852,7 @@
 100.00% <= 8 milliseconds
 256173.80 requests per second
 
-====== PING_BULK ======
+====== PING_BULK (pipeline 50) ======
   5000000 requests completed in 16.38 seconds
   10 parallel clients
   20 bytes payload
@@ -3883,7 +3869,7 @@
 100.00% <= 8 milliseconds
 305324.88 requests per second
 
-====== SET ======
+====== SET (pipeline 50) ======
   5000000 requests completed in 23.30 seconds
   10 parallel clients
   20 bytes payload
@@ -3903,7 +3889,7 @@
 100.00% <= 16 milliseconds
 214629.12 requests per second
 
-====== GET ======
+====== GET (pipeline 50) ======
   5000000 requests completed in 20.56 seconds
   10 parallel clients
   20 bytes payload
@@ -3920,7 +3906,7 @@
 100.00% <= 9 milliseconds
 243226.16 requests per second
 
-====== MSET (10 keys) ======
+====== MSET (10 keys) (pipeline 50) ======
   5000000 requests completed in 73.30 seconds
   10 parallel clients
   20 bytes payload
@@ -3962,8 +3948,7 @@
 100.00% <= 47 milliseconds
 68214.69 requests per second
 
-
-====== PING_INLINE ======
+====== PING_INLINE (pipeline 1) ======
   5000000 requests completed in 184.65 seconds
   100 parallel clients
   20 bytes payload
@@ -3984,7 +3969,7 @@
 100.00% <= 13 milliseconds
 27078.11 requests per second
 
-====== PING_BULK ======
+====== PING_BULK (pipeline 1) ======
   5000000 requests completed in 189.23 seconds
   100 parallel clients
   20 bytes payload
@@ -4001,7 +3986,7 @@
 100.00% <= 205 milliseconds
 26422.31 requests per second
 
-====== SET ======
+====== SET (pipeline 1) ======
   5000000 requests completed in 189.73 seconds
   100 parallel clients
   20 bytes payload
@@ -4028,7 +4013,7 @@
 100.00% <= 20 milliseconds
 26352.82 requests per second
 
-====== GET ======
+====== GET (pipeline 1) ======
   5000000 requests completed in 186.14 seconds
   100 parallel clients
   20 bytes payload
@@ -4048,7 +4033,7 @@
 100.00% <= 15 milliseconds
 26861.79 requests per second
 
-====== MSET (10 keys) ======
+====== MSET (10 keys) (pipeline 1) ======
   5000000 requests completed in 187.51 seconds
   100 parallel clients
   20 bytes payload
@@ -4085,8 +4070,7 @@
 100.00% <= 36 milliseconds
 26665.96 requests per second
 
-
-====== PING_INLINE ======
+====== PING_INLINE (pipeline 10) ======
   5000000 requests completed in 27.14 seconds
   100 parallel clients
   20 bytes payload
@@ -4129,7 +4113,7 @@
 100.00% <= 66 milliseconds
 184209.56 requests per second
 
-====== PING_BULK ======
+====== PING_BULK (pipeline 10) ======
   5000000 requests completed in 25.52 seconds
   100 parallel clients
   20 bytes payload
@@ -4179,7 +4163,7 @@
 100.00% <= 66 milliseconds
 195924.77 requests per second
 
-====== SET ======
+====== SET (pipeline 10) ======
   5000000 requests completed in 32.39 seconds
   100 parallel clients
   20 bytes payload
@@ -4206,7 +4190,7 @@
 100.00% <= 18 milliseconds
 154349.56 requests per second
 
-====== GET ======
+====== GET (pipeline 10) ======
   5000000 requests completed in 29.33 seconds
   100 parallel clients
   20 bytes payload
@@ -4257,7 +4241,7 @@
 100.00% <= 78 milliseconds
 170462.30 requests per second
 
-====== MSET (10 keys) ======
+====== MSET (10 keys) (pipeline 10) ======
   5000000 requests completed in 90.75 seconds
   100 parallel clients
   20 bytes payload
@@ -4314,8 +4298,7 @@
 100.00% <= 119 milliseconds
 55093.39 requests per second
 
-
-====== PING_INLINE ======
+====== PING_INLINE (pipeline 50) ======
   5000000 requests completed in 18.04 seconds
   100 parallel clients
   20 bytes payload
@@ -4356,7 +4339,7 @@
 100.00% <= 82 milliseconds
 277146.50 requests per second
 
-====== PING_BULK ======
+====== PING_BULK (pipeline 50) ======
   5000000 requests completed in 16.49 seconds
   100 parallel clients
   20 bytes payload
@@ -4414,7 +4397,7 @@
 100.00% <= 206 milliseconds
 303158.91 requests per second
 
-====== SET ======
+====== SET (pipeline 50) ======
   5000000 requests completed in 24.28 seconds
   100 parallel clients
   20 bytes payload
@@ -4496,7 +4479,7 @@
 100.00% <= 235 milliseconds
 205930.80 requests per second
 
-====== GET ======
+====== GET (pipeline 50) ======
   5000000 requests completed in 20.68 seconds
   100 parallel clients
   20 bytes payload
@@ -4551,7 +4534,7 @@
 100.00% <= 237 milliseconds
 241814.58 requests per second
 
-====== MSET (10 keys) ======
+====== MSET (10 keys) (pipeline 50) ======
   5000000 requests completed in 82.31 seconds
   100 parallel clients
   20 bytes payload
@@ -4640,8 +4623,7 @@
 100.00% <= 185 milliseconds
 60746.70 requests per second
 
-
-====== PING_INLINE ======
+====== PING_INLINE (pipeline 1) ======
   5000000 requests completed in 191.34 seconds
   500 parallel clients
   20 bytes payload
@@ -4702,7 +4684,7 @@
 100.00% <= 213 milliseconds
 26131.08 requests per second
 
-====== PING_BULK ======
+====== PING_BULK (pipeline 1) ======
   5000000 requests completed in 172.34 seconds
   500 parallel clients
   20 bytes payload
@@ -4732,7 +4714,7 @@
 100.00% <= 25 milliseconds
 29011.74 requests per second
 
-====== SET ======
+====== SET (pipeline 1) ======
   5000000 requests completed in 195.79 seconds
   500 parallel clients
   20 bytes payload
@@ -4811,7 +4793,7 @@
 100.00% <= 86 milliseconds
 25537.04 requests per second
 
-====== GET ======
+====== GET (pipeline 1) ======
   5000000 requests completed in 194.45 seconds
   500 parallel clients
   20 bytes payload
@@ -4858,7 +4840,7 @@
 100.00% <= 54 milliseconds
 25713.55 requests per second
 
-====== MSET (10 keys) ======
+====== MSET (10 keys) (pipeline 1) ======
   5000000 requests completed in 207.91 seconds
   500 parallel clients
   20 bytes payload
@@ -4954,8 +4936,7 @@
 100.00% <= 240 milliseconds
 24048.63 requests per second
 
-
-====== PING_INLINE ======
+====== PING_INLINE (pipeline 10) ======
   5000000 requests completed in 26.97 seconds
   500 parallel clients
   20 bytes payload
@@ -5047,7 +5028,7 @@
 100.00% <= 394 milliseconds
 185398.05 requests per second
 
-====== PING_BULK ======
+====== PING_BULK (pipeline 10) ======
   5000000 requests completed in 25.19 seconds
   500 parallel clients
   20 bytes payload
@@ -5124,7 +5105,7 @@
 100.00% <= 384 milliseconds
 198483.58 requests per second
 
-====== SET ======
+====== SET (pipeline 10) ======
   5000000 requests completed in 34.00 seconds
   500 parallel clients
   20 bytes payload
@@ -5224,7 +5205,7 @@
 100.00% <= 297 milliseconds
 147054.50 requests per second
 
-====== GET ======
+====== GET (pipeline 10) ======
   5000000 requests completed in 29.70 seconds
   500 parallel clients
   20 bytes payload
@@ -5301,7 +5282,7 @@
 100.00% <= 413 milliseconds
 168321.83 requests per second
 
-====== MSET (10 keys) ======
+====== MSET (10 keys) (pipeline 10) ======
   5000000 requests completed in 92.56 seconds
   500 parallel clients
   20 bytes payload
@@ -5440,8 +5421,7 @@
 100.00% <= 361 milliseconds
 54020.77 requests per second
 
-
-====== PING_INLINE ======
+====== PING_INLINE (pipeline 50) ======
   5000000 requests completed in 18.92 seconds
   500 parallel clients
   20 bytes payload
@@ -5597,7 +5577,7 @@
 100.00% <= 292 milliseconds
 264242.66 requests per second
 
-====== PING_BULK ======
+====== PING_BULK (pipeline 50) ======
   5000000 requests completed in 17.00 seconds
   500 parallel clients
   20 bytes payload
@@ -5718,7 +5698,7 @@
 100.00% <= 1225 milliseconds
 294117.66 requests per second
 
-====== SET ======
+====== SET (pipeline 50) ======
   5000000 requests completed in 24.01 seconds
   500 parallel clients
   20 bytes payload
@@ -5892,7 +5872,7 @@
 100.00% <= 936 milliseconds
 208246.56 requests per second
 
-====== GET ======
+====== GET (pipeline 50) ======
   5000000 requests completed in 21.15 seconds
   500 parallel clients
   20 bytes payload
@@ -6017,7 +5997,7 @@
 100.00% <= 165 milliseconds
 236451.34 requests per second
 
-====== MSET (10 keys) ======
+====== MSET (10 keys) (pipeline 50) ======
   5000000 requests completed in 76.01 seconds
   500 parallel clients
   20 bytes payload
@@ -6187,8 +6167,7 @@
 100.00% <= 468 milliseconds
 65782.55 requests per second
 
-
-====== PING_INLINE ======
+====== PING_INLINE (pipeline 1) ======
   5000000 requests completed in 239.60 seconds
   1000 parallel clients
   20 bytes payload
@@ -6280,7 +6259,7 @@
 100.00% <= 228 milliseconds
 20867.68 requests per second
 
-====== PING_BULK ======
+====== PING_BULK (pipeline 1) ======
   5000000 requests completed in 235.12 seconds
   1000 parallel clients
   20 bytes payload
@@ -6332,7 +6311,7 @@
 100.00% <= 222 milliseconds
 21265.65 requests per second
 
-====== SET ======
+====== SET (pipeline 1) ======
   5000000 requests completed in 237.19 seconds
   1000 parallel clients
   20 bytes payload
@@ -6451,7 +6430,7 @@
 100.00% <= 225 milliseconds
 21080.24 requests per second
 
-====== GET ======
+====== GET (pipeline 1) ======
   5000000 requests completed in 242.81 seconds
   1000 parallel clients
   20 bytes payload
@@ -6529,7 +6508,7 @@
 100.00% <= 101 milliseconds
 20592.15 requests per second
 
-====== MSET (10 keys) ======
+====== MSET (10 keys) (pipeline 1) ======
   5000000 requests completed in 278.23 seconds
   1000 parallel clients
   20 bytes payload
@@ -6680,8 +6659,7 @@
 100.00% <= 283 milliseconds
 17970.87 requests per second
 
-
-====== PING_INLINE ======
+====== PING_INLINE (pipeline 10) ======
   5000000 requests completed in 31.86 seconds
   1000 parallel clients
   20 bytes payload
@@ -6802,7 +6780,7 @@
 100.00% <= 155 milliseconds
 156951.38 requests per second
 
-====== PING_BULK ======
+====== PING_BULK (pipeline 10) ======
   5000000 requests completed in 29.06 seconds
   1000 parallel clients
   20 bytes payload
@@ -6895,7 +6873,7 @@
 100.00% <= 265 milliseconds
 172087.42 requests per second
 
-====== SET ======
+====== SET (pipeline 10) ======
   5000000 requests completed in 37.82 seconds
   1000 parallel clients
   20 bytes payload
@@ -7036,7 +7014,7 @@
 100.00% <= 182 milliseconds
 132201.69 requests per second
 
-====== GET ======
+====== GET (pipeline 10) ======
   5000000 requests completed in 35.87 seconds
   1000 parallel clients
   20 bytes payload
@@ -7164,7 +7142,7 @@
 100.00% <= 349 milliseconds
 139380.59 requests per second
 
-====== MSET (10 keys) ======
+====== MSET (10 keys) (pipeline 10) ======
   5000000 requests completed in 92.61 seconds
   1000 parallel clients
   20 bytes payload
@@ -7423,8 +7401,7 @@
 100.00% <= 693 milliseconds
 53990.43 requests per second
 
-
-====== PING_INLINE ======
+====== PING_INLINE (pipeline 50) ======
   5000000 requests completed in 19.34 seconds
   1000 parallel clients
   20 bytes payload
@@ -7581,7 +7558,7 @@
 100.00% <= 464 milliseconds
 258531.53 requests per second
 
-====== PING_BULK ======
+====== PING_BULK (pipeline 50) ======
   5000000 requests completed in 17.37 seconds
   1000 parallel clients
   20 bytes payload
@@ -7802,7 +7779,7 @@
 100.00% <= 291 milliseconds
 287918.94 requests per second
 
-====== SET ======
+====== SET (pipeline 50) ======
   5000000 requests completed in 24.06 seconds
   1000 parallel clients
   20 bytes payload
@@ -8016,7 +7993,7 @@
 100.00% <= 400 milliseconds
 207796.52 requests per second
 
-====== GET ======
+====== GET (pipeline 50) ======
   5000000 requests completed in 21.47 seconds
   1000 parallel clients
   20 bytes payload
@@ -8197,7 +8174,7 @@
 100.00% <= 322 milliseconds
 232915.64 requests per second
 
-====== MSET (10 keys) ======
+====== MSET (10 keys) (pipeline 50) ======
   5000000 requests completed in 76.95 seconds
   1000 parallel clients
   20 bytes payload
@@ -8482,5 +8459,4 @@
 99.81% <= 862 milliseconds
 100.00% <= 862 milliseconds
 64980.64 requests per second
-
 
