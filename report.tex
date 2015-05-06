@@ -8,7 +8,7 @@
 
 \begin{document}
 
-\title{A Unikernel Key-Value Store}
+\title{Keyvee: A Unikernel Key-Value Store}
 \author{Nate Brennand, Gudbergur Erlendsson, Mishail Tupas}
 \date{April 7, 2015}
 \maketitle
@@ -17,10 +17,11 @@
 
 \begin{abstract}
 Traditional web infrastructure models consist of a cluster of heavyweight full stack virtual machines usually running a variant of Linux.
-This provides a simple consistent platform for developers to write their applications against but running a full stack machine on top of a hypervisor has a lot of resource overhead.
+This provides a simple consistent platform for developers to write their applications against but running a full stack machine on top of a hypervisor has downsides, for example a lot of resource overhead.
 Key-value datastores are a common component of web infrastructure.
+Unikernels are specialized OS kernels that are written in a high-level language and act as individual software components.
+Unikernels allow restructuring of entire virtual machines into more modular components that are flexible, secure, and reusable in the style of a library operating systems. Applications can be developed and then compiled into unikernels using a toolchain, such as MirageOS for example, and can be deployed directly on top of a Xen hypervisor.
 We've designed a Mirage OS\cite{mirage} unikernel implementation of the popular Redis\cite{redis} in-memory key-value store that allows fast creation and deployment of the datastore as well as ease scaling up the allocated resources.
-Applications developed with MirageOS can be deployed directly on the Xen hypervisor.
 We describe the advantages and disadvantages that come with such a system.
 We highlight the performance characteristics of this new approach in comparison to Redis.
 
@@ -30,19 +31,38 @@ We expect with more profiling and testing we can identify the hotspots in our co
 
 
 \section{Introduction}
-In-memory key-value datastores are used in a wide variety of applications for ease of use and the high throughput.
-While these applications are known for their great performance, research has shown that networked applications striving for low latency, such as Redis, are actually subjected to a high amount of overhead from utilizing Linux's networking stack.\cite{arrakis}
-This issue is amplified by the lack of stability in allocated resources when running on Linux itself which is prone to performance dips when the resource scheduler is not coordinated.
+In-memory key-value datastores like Redis are used in a wide variety of applications for ease of use and high throughput.
+While these kind of databases are known for their great performance, research has shown that networked applications striving for low latency, such as Redis, are actually subjected to a high amount of overhead from utilizing Linux's networking stack.\cite{arrakis}
+This issue is amplified by the lack of stability in allocated resources when running on Linux itself which is prone to performance dips when the resource scheduler is not coordinated. 
 
-We believe that the approach of moving the key-value datastore to a unikernel implementation will yield greater and more reliable performance.
-A unikernel is a specialized application capable of running directly on top of bare-metal or a hypervisor without a host operating system.
-The unikernel approach lacks many of the performance issues plaguing Redis that cannot be resolved at the application level.
-We build on top of the MirageOS\cite{mirage}, an OCaml based library operating system.
-MirageOS provides correctness due to the strongly-typed nature of OCaml, this yields very reliable code.
+While Redis has some tricks to minimize latency and roundtrips, like pipelining for example, we believe that the approach of moving the key-value datastore to a unikernel implementation will yield greater and more reliable performance.
+A unikernel is a specialized application capable of running directly on top of bare-metal or a hypervisor without a host operating system, eliminating layers to achieve better performance.
+The unikernel approach mitigates many of the performance issues plaguing Redis that cannot be resolved at the application level.
+We build on top of the MirageOS\cite{mirage}, OCaml based library operating system that constructs unikernels.
+MirageOS provides correctness due to the strongly-typed nature of OCaml which yields very reliable code.
 
-We measure the performance characteristics of Redis in multiple situations: networked and on-host, to yield a direct comparison to our implementation, Keyvee.
+We measure the performance characteristics of Redis in multiple situations to yield a direct comparison to our implementation, Keyvee.
 Keyvee speaks the Redis Serialization Protocol\cite{redis-protocol}, RESP, which makes Keyvee a drop in replacement for Redis in any deployment utilizing the Xen Hypervisor.
 We hope this compatibility will allow Keyvee to help establish unikernels as a viable piece of web application infrastructure.
+
+\subsection{Related Work}
+
+In addition to MirageOS, there are several other different ongoing efforts to implement unikernels and achieve similar results.
+HaLVM\cite{halvm} and LING\cite{ling} are examples of alternatives to MirageOS, using Haskell and Erlang respectively as the basis of their unikernel implementation.
+Each of the unikernel implementations HaLVM, LING and Mirage, share the trait that you are limited to one functional language exclusively and compile into an image to run on top of the Xen hypervisor.
+MirageOS and LING focuses on performance and predictability while HalVM focuses more on elegant compositional semantics using Haskell, according to the authors\cite{tripreport}.
+Low level libraries are being implemented for the platforms in their native code, so while the work is ongoing the level of support varies.
+MirageOS for examples uses OCaml-DNS, Mirage-TCPIP and other libraries. It also has a relatively advanced TLS library (OCaml-TLS) and better support for encrypted traffic then the other two library operating systems mentioned earlier. There
+
+OSv\cite{osv} is another variant to the special-purpose operating system using the library OS paradigm, mostly based on code from BSD.
+In OSv everything runs in the kernel space and it's built to run as guest on top of a virtual machine.
+However, it supports Linux ABI, and contains necessary functionality to run Java and POSIX applications which allows OSv to run some existing codebases and get some of the performance benefit Mirage enjoys, but not increased security.
+To get zero-copy I/O specific non-POSIX OSv API's need to be used.
+Mirage however does not focus on support for legacy applications but rather focuses on a toolkit to assemble new unikernel applications without specific domain knowledge in kernel programming.
+
+Arrakis\cite{arrakis}, SPIN\cite{spin} and Exokernel\cite{exokernel} all reduce shared kernel components and allow each application to have customized operating system management, achieving some of the increased performance benefit of MirageOS without tying you to one language runtime.
+Arrakis in particular benefits from increased support for virtualization in new hardware, which allows it to effectively run all applications in kernel space and achieve separation using hardware instructions, similar to how MirageOS achieves separation through Xen.
+
 
 
 \section{Background}
@@ -98,23 +118,6 @@ The smaller the attack surface area, the more difficult it is to compromise an a
 When a Mirage image is compiled, only the imported libraries are included which means that only the necessary ports and protocols are exposed.
 This aspect, combined with the type-safety OCaml provides eliminates entire classes of security vulnerabilities in Mirage applications.
 
-
-\subsection{Related Work}
-
-HaLVM\cite{halvm} and LING\cite{ling} are both alternatives to MirageOS, using Haskell and Erlang respectively as the basis of their unikernel efforts.
-Each of the unikernel implementations: HaLVM, LING and Mirage, share the trait that you are limited to one functional language exclusively and compile into an image to run on top of the Xen hypervisor.
-MirageOS and LING focuses on performance and predictability while HalVM focuses more on elegant compositional semantics using Haskell, according to the authors\cite{tripreport}.
-Low level libraries are being implemented for the platforms in their native code, so while the work is ongoing the level of support varies.
-MirageOS for examples uses OCaml-DNS, Mirage-TCPIP and other libraries. It also has a relatively advanced TLS library (OCaml-TLS) and better support for encrypted traffic then the other two library operating systems mentioned earlier.
-
-OSv\cite{osv} is another variant to the special-purpose operating system using the library OS paradigm, mostly based on code from BSD.
-In OSv everything runs in the kernel space and it's built to run as guest on top of a virtual machine.
-However, it supports Linux ABI, and contains necessary functionality to run Java and POSIX applications which allows OSv to run some existing codebases and get some of the performance benefit Mirage enjoys, but not increased security.
-To get zero-copy I/O specific non-POSIX OSv API's need to be used.
-Mirage however does not focus on support for legacy applications but rather focuses on a toolkit to assemble new unikernel applications without specific domain knowledge in kernel programming.
-
-Arrakis\cite{arrakis}, SPIN\cite{spin} and Exokernel\cite{exokernel} all reduce shared kernel components and allow each application to have customized operating system management, achieving some of the increased performance benefit of MirageOS without tying you to one language runtime.
-Arrakis in particular benefits from increased support for virtualization in new hardware, which allows it to effectively run all applications in kernel space and achieve separation using hardware instructions, similar to how MirageOS achieves separation through Xen.
 
 
 
