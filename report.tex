@@ -10,7 +10,7 @@
 
 \title{A Unikernel Key-Value Store}
 \author{Nate Brennand, Gudbergur Erlendsson, Mishail Tupas}
-\date{April 7, 2015}
+\date{May 6, 2015}
 \maketitle
 \thispagestyle{empty}
 
@@ -175,14 +175,15 @@ When a MirageOS unikernel is configured in Xen mode, both the unikernel image an
 With these, a unikernel can be easily launched using the xl Xen management tool.
 Due to the small size of the image, this is a quick process where the Mirage image configures itself when started by xl.
 We used a vanilla Redis 2.8 installation on Xen as the comparison environment to Keyvee.
+The test clients were hosted on a Macbook Pro and connected via a network bridge.
 
-$ I am assuming at the moment we are using the current tests on gist$
-
-A total of six benchmark setups were tested. Both environments used a key space of 1 key of 5 bytes. Each setup had 10, 100, or 500 clients communicating with the environment, making a total of 1 million requests for the first two setups and one hundred thousand requests for the latter. Each packet sent from a client would either contain one or three requests.
+Using the benchmark suite, three aspects of scalability were tested: total number of requests, number of clients making making requests in parallel, and pipelining.
+Each test used a combination of either one million or five million requests;e ither ten, one hundred, five hundred, or one thousand parallel clients; and a pipeline of either one (effectively no pipelining) or 3 requests, for a total of 16 different tests.
+All tests used a key space of 1 key with keys 20 bytes large.
 
 \subsection{Throughput Performance}
 
-Test results showed that for few (10 or less) parallel clients, Keyvee performed just as well, if not better, than Redis.
+Test results showed that for ten parallel clients, Keyvee performed just as well, if not better, than Redis.
 Beyond 10 clients, Keyvee's performance was consistently poorer than Redis, with performance degrading logarithmically with the increase in clients, leveling off to roughly half of Redis' performance.
 Upon further observation and testing, it was found that the Lightweight thread architecture  used by Mirage to handle simultaneous connections was the cause of the performance loss. We concluded that the LWTs was not a mature technology when compared to Kqueue and Epoll that Redis relies on.
 
