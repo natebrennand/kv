@@ -177,24 +177,29 @@ Due to the small size of the image, this is a quick process where the Mirage ima
 We used a vanilla Redis 2.8 installation on Xen as the comparison environment to Keyvee.
 The test clients were hosted on a Macbook Pro and connected via a network bridge.
 
-Using the benchmark suite, three aspects of scalability were tested: total number of requests, number of clients making making requests in parallel, and pipelining.
-Each test used a combination of either one million or five million requests;e ither ten, one hundred, five hundred, or one thousand parallel clients; and a pipeline of either one (effectively no pipelining) or 3 requests, for a total of 16 different tests.
-All tests used a key space of 1 key with keys 20 bytes large.
+The Redis benchmark suite was used to examine the throughput of the implemented GET, SET, MSET, and PING commands.
+Three aspects of scalability were tested: raw request volume, request parallelization, and request pipelining.
+To test scalability with raw volume, a benchmark setup would have either a total of one million requests or five million of each command.
+For parallelization, the remote host would set up a group of 10, 100, 500, one thousand clients.
+Regarding pipelining, requests with either pipelined with three requests per packet sent, or with no pipelining at all.
+Each benchmark setup, in conjunction with a key space size of 1 and a key size of 20 bytes, used a combination of these three aspects, resulting in a total of 16 different tests.
 
 \subsection{Throughput Performance}
 
-Test results showed that for ten parallel clients, Keyvee performed just as well, if not better, than Redis.
-Beyond 10 clients, Keyvee's performance was consistently poorer than Redis, with performance degrading logarithmically with the increase in clients, leveling off to roughly half of Redis' performance.
-Upon further observation and testing, it was found that the Lightweight thread architecture  used by Mirage to handle simultaneous connections was the cause of the performance loss. We concluded that the LWTs was not a mature technology when compared to Kqueue and Epoll that Redis relies on.
+$Graphs go here$
+
+Neither increasing the number of total requests or enabling pipelining had a significant effect on the relative throughput of Keyvee when compared to Redis, meaning that Keyvee was scalable with large numbers of requests.
+However, scaling the number of concurrent clients had a profound effect on throughput.
+Across all the implemented commands, Keyvee performed just as well, if not better, than Redis when only ten clients were connecting at once.
+Beyond 10 clients, Keyvee's performance was consistently poorer than Redis, degrading logarithmically with the increase in clients and leveling off to roughly half of Redis' performance.
+Upon further examination of the code and testing, it was found that the overhead from the light-weight threads used by Mirage to handle simultaneous connections resulted in the severely reduced throughput.
 
 \section{Conclusion}
 In this paper we described the implementation and evaluation of our unikernel key-value store, Keyvee.
 Our efforts are concentrated around implementing a subset of Redis's functionality using OCaml and the MirageOS toolchain.
 We then evaluated our implementation and compared it with Redis using Redis's benchmarking tool.
-While similar, if not superior throughput was achieved in tests having few parallel clients, a scaling issue was found when Keyvee was subjected to larger parallel loads.
-The main source of the low throughput was identified as an issue with handling the TCP clients used for benchmarking, resulting in a loss of parallelization.
-A fix is currently being developed and will be tested shortly to provide a better image of Keyvee's performance.
-
+While similar, if not superior, throughput was achieved in tests having few parallel clients, a scaling issue was found when Keyvee was subjected to larger parallel loads, resulting in poor throughput.
+The main source of the low throughput was identified as an underlying issue with Mirage OS's difficulty in handling large numbers of multiple clients.
 
 \section{Acknowledgements}
 We thank the kind souls in the \#Mirage IRC chatroom for their relentless patience.
