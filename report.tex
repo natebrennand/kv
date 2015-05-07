@@ -176,13 +176,12 @@ The Redis setups were given ten thousands requests as part of their benchmark, w
 
 
 \begin{tikzpicture}
-\begin{axis}[]
+\begin{axis}
 \addplot[
   color=blue,
   mark=square,
 ]
-table{./results/GET_pipeline_10_w_100.cdf.results};
-% file {\import@results/GET_pipeline_1_w_100.cdf.results};
+table{results/keyvee/GET_pipeline_10_w_100.cdf.results};
 \end{axis}
 \end{tikzpicture}
 
