@@ -4,6 +4,7 @@
 \usepackage{fullpage}
 \usepackage{babel}
 \usepackage{graphicx}
+\usepackage{pgfplots}
 
 
 \begin{document}
@@ -172,6 +173,19 @@ We performed all of our evaluations on a dedicated 8-core HP ProLiant rack serve
 Our Xen hypervisor installation is coordinated by a Ubuntu Server 14.04 host that serves as the management domain to manage the other hosts running on the Hypervisor.
 The Mirage installation was modified to use Redis's communication protocols so that we could use the same benchmark for all test setups. The benchmark was run using 50 parallel clients sending a 3-byte payload.
 The Redis setups were given ten thousands requests as part of their benchmark, while the Mirage setups on Xen were given five hundred, one thousand, or ten thousand requests.
+
+
+\begin{tikzpicture}
+\begin{axis}[]
+\addplot[
+  color=blue,
+  mark=square,
+]
+table{./results/GET_pipeline_10_w_100.cdf.results};
+% file {\import@results/GET_pipeline_1_w_100.cdf.results};
+\end{axis}
+\end{tikzpicture}
+
 
 
 \subsection{Running Mirage}

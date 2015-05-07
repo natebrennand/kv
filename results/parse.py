@@ -44,9 +44,9 @@ def process_benchmark(f):
 
 def gen_cdf(b):
     filename = "{title}_w_{clients}.cdf.results".format(title=b.title, clients=b.clients).replace("__", "_", 10)
-    with open(filename, 'wb') as f:
+    with open(system+filename, 'wb') as f:
         for (p, l) in b.tiers:
-            f.write("({percent}, {latency})\n".format(percent=p, latency=l))
+            f.write("{latency} {percent}\n".format(percent=p, latency=l))
 
 
 def gen_graph(res_array):
@@ -54,7 +54,7 @@ def gen_graph(res_array):
     pipelines = [r"pipeline_1_$", r"pipeline_10_$", r"pipeline_50_$"]
 
     for filename in set(map(lambda a: a.title, res_array)):
-        with open(filename+".results", 'w') as f:
+        with open(system+filename+".results", 'w') as f:
             f.write("")
 
 
@@ -71,8 +71,8 @@ def gen_graph(res_array):
                 results3 = max(res, key=lambda r: r.throughput)
                 print results3.title, c_num, results3.clients, results3.throughput, results3.num
 
-                with open(r.title+".results", 'a') as f:
-                    f.write("({}, {})\n".format(c_num, results3.throughput))
+                with open(system+r.title+".results", 'a') as f:
+                    f.write("{} {}\n".format(c_num, results3.throughput))
 
 
 
@@ -81,6 +81,7 @@ if __name__ == '__main__':
         print 'Please provide a filename of benchmark results'
         exit(1)
     filename = argv[1]
+    system = filename.split(".")[0] + "/"
 
     results = []
     with open(filename) as f:
