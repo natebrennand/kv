@@ -4,6 +4,7 @@
 \usepackage{fullpage}
 \usepackage{babel}
 \usepackage{graphicx}
+\usepackage{tikz}
 
 
 \begin{document}
@@ -193,6 +194,17 @@ However, scaling the number of concurrent clients had a profound effect on throu
 Across all the implemented commands, Keyvee performed just as well, if not better, than Redis when only ten clients were connecting at once.
 Beyond 10 clients, Keyvee's performance was consistently poorer than Redis, degrading logarithmically with the increase in clients and leveling off to roughly half of Redis' performance.
 Upon further examination of the code and testing, it was found that the overhead from the light-weight threads used by Mirage to handle simultaneous connections resulted in the severely reduced throughput.
+
+
+\begin{tikzpicture}
+\begin{axis}[]
+\addplot[
+color=blue,
+mark=square,
+]
+table{./keyvee/GET_pipeline_10_w_100.cdf.results};
+\end{axis}
+\end{tikzpicture}
 
 \section{Conclusion}
 In this paper we described the implementation and evaluation of our unikernel key-value store, Keyvee.
