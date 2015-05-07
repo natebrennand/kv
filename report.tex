@@ -171,8 +171,26 @@ Especially as it is the early days there is not a lot of community support surro
 \section{Evaluation}
 \subsection{Testing Environment}
 We performed all of our evaluations on a dedicated 8-core HP ProLiant rack server with 16 GB RAM available.
-Our Xen hypervisor installation was coordinated by a Ubuntu Server 14.04 host that serves as the management domain to manage the other hosts running on the Hypervisor.
-The Keyvee unikernel implemented Redis's communication protocols so that we could use the same benchmark for all test setups.
+Our Xen hypervisor installation is coordinated by a Ubuntu Server 14.04 host that serves as the management domain to manage the other hosts running on the Hypervisor.
+The Mirage installation was modified to use Redis's communication protocols so that we could use the same benchmark for all test setups. The benchmark was run using 50 parallel clients sending a 3-byte payload.
+The Redis setups were given ten thousands requests as part of their benchmark, while the Mirage setups on Xen were given five hundred, one thousand, or ten thousand requests.
+
+
+\begin{tikzpicture}
+\begin{axis}
+\addplot[
+  color=blue,
+  mark=square,
+]
+table{results/keyvee/GET_pipeline_10_w_100.cdf.results};
+\end{axis}
+\end{tikzpicture}
+
+
+
+\subsection{Running Mirage}
+
+
 When a MirageOS unikernel is configured in Xen mode, both the unikernel image and the configuration file are generated.
 With these, a unikernel can be easily launched using the xl Xen management tool.
 Due to the small size of the image, this is a quick process where the Mirage image configures itself when started by xl.
