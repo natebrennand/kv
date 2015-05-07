@@ -170,14 +170,16 @@ Especially as it is the early days there is not a lot of community support surro
 \subsection{Testing Environment}
 We performed all of our evaluations on a dedicated 8-core HP ProLiant rack server with 16 GB RAM available.
 Our Xen hypervisor installation was coordinated by a Ubuntu Server 14.04 host that serves as the management domain to manage the other hosts running on the Hypervisor.
-The Mirage installation running Keyvee was modified to use Redis's communication protocols so that we could use the same benchmark for all test setups.
+The Keyvee unikernel implemented Redis's communication protocols so that we could use the same benchmark for all test setups.
 When a MirageOS unikernel is configured in Xen mode, both the unikernel image and the configuration file are generated.
 With these, a unikernel can be easily launched using the xl Xen management tool.
 Due to the small size of the image, this is a quick process where the Mirage image configures itself when started by xl.
-We used a vanilla Redis 2.8 installation on Xen as the comparison environment to Keyvee.
-The test clients were hosted on a Macbook Pro and connected via a network bridge.
+We used a Redis 2.8 installation on Xen as the comparison application to Keyvee.
+The test clients were hosted by the supervising host on Xen.
 
-The Redis benchmark suite was used to examine the throughput of the implemented GET, SET, MSET, and PING commands.
+Using the Redis benchmark suite to examine Keyvee provided guarantees that the Redis communication protocols were properly fulfilled and provided a common means of measuring throughput.
+Four commands were implemented and tested: SET, which assigned a single key its value; MSET, which assigned values to multiple keys; GET, which retrieves the value of a given key; and PING, which tests the server's connectivity.
+
 Three aspects of scalability were tested: raw request volume, request parallelization, and request pipelining.
 To test scalability with raw volume, a benchmark setup would have either a total of one million requests or five million of each command.
 For parallelization, the remote host would set up a group of 10, 100, 500, one thousand clients.
@@ -185,8 +187,6 @@ Regarding pipelining, requests with either pipelined with three requests per pac
 Each benchmark setup, in conjunction with a key space size of 1 and a key size of 20 bytes, used a combination of these three aspects, resulting in a total of 16 different tests.
 
 \subsection{Throughput Performance}
-
-$Graphs go here$
 
 Neither increasing the number of total requests or enabling pipelining had a significant effect on the relative throughput of Keyvee when compared to Redis, meaning that Keyvee was scalable with large numbers of requests.
 However, scaling the number of concurrent clients had a profound effect on throughput.
