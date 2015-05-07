@@ -10,7 +10,7 @@
 
 \title{A Unikernel Key-Value Store}
 \author{Nate Brennand, Gudbergur Erlendsson, Mishail Tupas}
-\date{April 7, 2015}
+\date{May 6, 2015}
 \maketitle
 \thispagestyle{empty}
 
@@ -167,66 +167,39 @@ Especially as it is the early days there is not a lot of community support surro
 
 
 \section{Evaluation}
-
+\subsection{Testing Environment}
 We performed all of our evaluations on a dedicated 8-core HP ProLiant rack server with 16 GB RAM available.
-Our Xen hypervisor installation is coordinated by a Ubuntu Server 14.04 host that serves as the management domain to manage the other hosts running on the Hypervisor.
-The Mirage installation was modified to use Redis's communication protocols so that we could use the same benchmark for all test setups. The benchmark was run using 50 parallel clients sending a 3-byte payload.
-The Redis setups were given ten thousands requests as part of their benchmark, while the Mirage setups on Xen were given five hundred, one thousand, or ten thousand requests.
-
-
-\subsection{Running Mirage}
-
+Our Xen hypervisor installation was coordinated by a Ubuntu Server 14.04 host that serves as the management domain to manage the other hosts running on the Hypervisor.
+The Keyvee unikernel implemented Redis's communication protocols so that we could use the same benchmark for all test setups.
 When a MirageOS unikernel is configured in Xen mode, both the unikernel image and the configuration file are generated.
 With these, a unikernel can be easily launched using the xl Xen management tool.
 Due to the small size of the image, this is a quick process where the Mirage image configures itself when started by xl.
+We used a Redis 2.8 installation on Xen as the comparison application to Keyvee.
+The test clients were hosted by the supervising host on Xen.
 
+Using the Redis benchmark suite to examine Keyvee provided guarantees that the Redis communication protocols were properly fulfilled and provided a common means of measuring throughput.
+Four commands were implemented and tested: SET, which assigned a single key its value; MSET, which assigned values to multiple keys; GET, which retrieves the value of a given key; and PING, which tests the server's connectivity.
 
-\subsection{Network Overhead}
-
-On examining the throughput and the completion times for requests between running the benchmark between two hosts, we found that there was a significant overhead imposed by network communications. For SET operations there was an increase of 42\% in execution time and GET operations saw a similar 43\% increase in execution time.
-The benchmark results for the MirageOS installation were found to have throughputs an order of magnitude lower than expected.
-Upon further testing and examination of code, it found that that the Mirage systems were not properly handling multiple simultaneous clients, resulting in a very low throughput which was noticed in further tests.
-
-
-\subsection{Mirage - UNIX}
-
-Three different benchmarks setups were tested, making either five hundred, one thousand, or ten thousand total requests.
-Similarly to the tests run on the Mirage installations that were on top of Xen, the throughput was also an order of magnitude lower when compared to Redis. 
-Strangely, the Unix-based setups did much better for the five hundred and one thousand request trials, but did extremely poorly for the ten thousand request setup.
+Three aspects of scalability were tested: raw request volume, request parallelization, and request pipelining.
+To test scalability with raw volume, a benchmark setup would have either a total of one million requests or five million of each command.
+For parallelization, the remote host would set up a group of 10, 100, 500, one thousand clients.
+Regarding pipelining, requests with either pipelined with three requests per packet sent, or with no pipelining at all.
+Each benchmark setup, in conjunction with a key space size of 1 and a key size of 20 bytes, used a combination of these three aspects, resulting in a total of 16 different tests.
 
 \subsection{Throughput Performance}
 
-\begin{figure*}[ht]
-  \centering
-  \caption{Average Throughputs}
-  \includegraphics[width=1.0\textwidth]{images/throughput}
-\end{figure*}
-
-\begin{table}[h]
-\begin{tabular}{lll}
-Average Throughput & SET Operation & GET Operation \\
-Native & 37766.142 & 37792.576 \\
-Host-to-Host & 26571.512 & 26348.028 \\
-Mirage on Xen & 2188.18 & 2222.22 \\
-Unix (500) & 3401.36 & 3787.88 \\
-Unix (1000) & 3344.48 & 2024.29 \\
-Unix (10000) & 580.55 & 338.26
-\end{tabular}
-\caption{Average throughputs (requests per second)}
-\label{my-label}
-\end{table}
-
-Overall, the Mirage systems showed markedly worse throughput performance, at a staggering order of magnitude lower than the baseline Redis benchmarks.
-Corrections to the Keyvee implementation are underway so that a fair benchmark comparison can be made and a provide a more representative view.
+Neither increasing the number of total requests or enabling pipelining had a significant effect on the relative throughput of Keyvee when compared to Redis, meaning that Keyvee was scalable with large numbers of requests.
+However, scaling the number of concurrent clients had a profound effect on throughput.
+Across all the implemented commands, Keyvee performed just as well, if not better, than Redis when only ten clients were connecting at once.
+Beyond 10 clients, Keyvee's performance was consistently poorer than Redis, degrading logarithmically with the increase in clients and leveling off to roughly half of Redis' performance.
+Upon further examination of the code and testing, it was found that the overhead from the light-weight threads used by Mirage to handle simultaneous connections resulted in the severely reduced throughput.
 
 \section{Conclusion}
 In this paper we described the implementation and evaluation of our unikernel key-value store, Keyvee.
 Our efforts are concentrated around implementing a subset of Redis's functionality using OCaml and the MirageOS toolchain.
 We then evaluated our implementation and compared it with Redis using Redis's benchmarking tool.
-Initial results revealed that, even when taking into account networking overhead, our unikernel implementation performed extremely poorly in both a Xen enviroment and a Unix installed environment.
-The main source of the low throughput was identified as an issue with handling the TCP clients used for benchmarking, resulting in a loss of parallelization.
-A fix is currently being developed and will be tested shortly to provide a better image of Keyvee's performance.
-
+While similar, if not superior, throughput was achieved in tests having few parallel clients, a scaling issue was found when Keyvee was subjected to larger parallel loads, resulting in poor throughput.
+The main source of the low throughput was identified as an underlying issue with Mirage OS's difficulty in handling large numbers of multiple clients.
 
 \section{Acknowledgements}
 We thank the kind souls in the \#Mirage IRC chatroom for their relentless patience.
