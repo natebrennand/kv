@@ -4,6 +4,7 @@
 \usepackage{fullpage}
 \usepackage{babel}
 \usepackage{graphicx}
+\usepackage{tikz}
 \usepackage{pgfplots}
 
 
@@ -117,9 +118,6 @@ Mirage however does not focus on support for legacy applications but rather focu
 Arrakis\cite{arrakis}, SPIN\cite{spin} and Exokernel\cite{exokernel} all reduce shared kernel components and allow each application to have customized operating system management, achieving some of the increased performance benefit of MirageOS without tying you to one language runtime.
 Arrakis in particular benefits from increased support for virtualization in new hardware, which allows it to effectively run all applications in kernel space and achieve separation using hardware instructions, similar to how MirageOS achieves separation through Xen.
 
-
-
-
 \section{Design and Implementation}
 For Keyvee we have the following goals:
 \begin{itemize}
@@ -170,8 +168,13 @@ Especially as it is the early days there is not a lot of community support surro
 \section{Evaluation}
 \subsection{Testing Environment}
 We performed all of our evaluations on a dedicated 8-core HP ProLiant rack server with 16 GB RAM available.
-Our Xen hypervisor installation was coordinated by a Ubuntu Server 14.04 host that serves as the management domain to manage the other hosts running on the Hypervisor.
-The Keyvee unikernel implemented Redis's communication protocols so that we could use the same benchmark for all test setups.
+Our Xen hypervisor installation is coordinated by a Ubuntu Server 14.04 host that serves as the management domain to manage the other hosts running on the Hypervisor.
+The Mirage installation was modified to use Redis's communication protocols so that we could use the same benchmark for all test setups. The benchmark was run using 50 parallel clients sending a 3-byte payload.
+The Redis setups were given ten thousands requests as part of their benchmark, while the Mirage setups on Xen were given five hundred, one thousand, or ten thousand requests.
+
+\subsection{Running Mirage}
+
+
 When a MirageOS unikernel is configured in Xen mode, both the unikernel image and the configuration file are generated.
 With these, a unikernel can be easily launched using the xl Xen management tool.
 Due to the small size of the image, this is a quick process where the Mirage image configures itself when started by xl.
@@ -179,28 +182,500 @@ We used a Redis 2.8 installation on Xen as the comparison application to Keyvee.
 The test clients were hosted by the supervising host on Xen.
 
 Using the Redis benchmark suite to examine Keyvee provided guarantees that the Redis communication protocols were properly fulfilled and provided a common means of measuring throughput.
+The distribution of command latency was also recorded, as it was automatically provided by the benchmark suite.
 Four commands were implemented and tested: SET, which assigned a single key its value; MSET, which assigned values to multiple keys; GET, which retrieves the value of a given key; and PING, which tests the server's connectivity.
 
 Three aspects of scalability were tested: raw request volume, request parallelization, and request pipelining.
-To test scalability with raw volume, a benchmark setup would have either a total of one million requests or five million of each command.
+To test scalability with raw volume, a benchmark setup would have either a total of one million or five million of each command.
 For parallelization, the remote host would set up a group of 10, 100, 500, one thousand clients.
-Regarding pipelining, requests with either pipelined with three requests per packet sent, or with no pipelining at all.
-Each benchmark setup, in conjunction with a key space size of 1 and a key size of 20 bytes, used a combination of these three aspects, resulting in a total of 16 different tests.
+Regarding pipelining, requests were pipelined by sending 1, 10, or 50 commands sent per request.
+Individual keys were 20 bytes large, and the number of keys used in a given test was equal to the number of total requests divided by one hundred.
+Each benchmark setup used a combination of these three aspects, resulting in a total of 16 unique tests.
 
-\subsection{Throughput Performance}
+\subsection{Overall Performance}
 
-Neither increasing the number of total requests or enabling pipelining had a significant effect on the relative throughput of Keyvee when compared to Redis, meaning that Keyvee was scalable with large numbers of requests.
-However, scaling the number of concurrent clients had a profound effect on throughput.
-Across all the implemented commands, Keyvee performed just as well, if not better, than Redis when only ten clients were connecting at once.
-Beyond 10 clients, Keyvee's performance was consistently poorer than Redis, degrading logarithmically with the increase in clients and leveling off to roughly half of Redis' performance.
+Increasing the number of total requests had no significant effect on the relative throughput of Keyvee when compared to Redis.
+Throughput increases through pipelining proved to scale better with Keyvee, but its benefit was usually overtaken by the profound effect scaling the number of concurrent clients had on throughput.
+Except for one of the implemented commands, Keyvee performed just as well, if not better, than Redis when only ten were connecting at once.
+However, Keyvee's throughput decreased logarithmically as the number of simultaneous clients increased, while Redis would only have a slight linear decrease, if at all.
+This meant that Keyvee would usually have consistently lower throughput than Redis after a certain low threshold, with some variance between commands.
 Upon further examination of the code and testing, it was found that the overhead from the light-weight threads used by Mirage to handle simultaneous connections resulted in the severely reduced throughput.
+With regards to the latency, each test showed a similar pattern, with Keyvee tending to have a much wider distribution, caused mainly by having a low number of commands taking an extradordinary amount of time.
+
+\subsection{SET Command}
+
+\begin{figure}[!htb]
+\begin{tikzpicture}[scale=0.65]
+\begin{axis}[
+xlabel = {Parallel Clients},
+ylabel = {Throughput (10\textsuperscript{5} Requests/sec)},
+legend columns = 3,
+transpose legend,
+legend style={at={(0.5,-0.2)},anchor=north}]
+\addplot[
+color=cyan,
+mark=diamond,
+]
+table{./results/redis/SET__pipeline_1_.results};
+\addlegendentry{Redis, no pipeline};
+\addplot[
+color=cyan,
+mark=square,
+]
+table{./results/redis/SET__pipeline_10_.results};
+\addlegendentry{Redis, pipeline of 10};
+\addplot[
+color=cyan,
+mark=triangle,
+]
+table{./results/redis/SET__pipeline_50_.results};
+\addlegendentry{Redis, pipeline of 50};
+\addplot[
+color=red,
+mark=diamond,
+]
+table{./results/keyvee/SET__pipeline_1_.results};
+\addlegendentry{Keyvee, no pipeline};
+\addplot[
+color=red,
+mark=square,
+]
+table{./results/keyvee/SET__pipeline_10_.results};
+\addlegendentry{Keyvee, pipeline of 10};
+\addplot[
+color=red,
+mark=triangle,
+]
+table{./results/keyvee/SET__pipeline_50_.results};
+\addlegendentry{Keyvee, pipeline of 50};
+\end{axis}
+\end{tikzpicture}
+\caption{SET Throughput\label{fig:SET_T}}
+\end{figure}
+
+\begin{figure}[!htb]
+\begin{tikzpicture}[scale=0.65]
+\begin{axis}[
+xmode = log,
+xlabel = {Maximum completion time},
+ylabel = {Percent of all requests},
+legend columns = 4,
+transpose legend,
+legend style={at={(0.5,-0.2)}, anchor=north}]
+	\addplot[
+	color=cyan,
+	mark=diamond,
+	]
+	table{./results/redis/SET_pipeline_1_w_10.cdf.results};
+	\addlegendentry{Redis, 10 clients};
+	\addplot[
+	color=cyan,
+	mark=square,
+	]
+	table{./results/redis/SET_pipeline_1_w_100.cdf.results};
+	\addlegendentry{Redis, 100 clients};
+	\addplot[
+	color=cyan,
+	mark=triangle,
+	]
+	table{./results/redis/SET_pipeline_1_w_500.cdf.results};
+	\addlegendentry{Redis, 500 clients};
+	\addplot[
+	color=cyan,
+	mark=star,
+	]
+	table{./results/redis/SET_pipeline_1_w_1000.cdf.results};
+	\addlegendentry{Redis, 1000 clients};
+	\addplot[
+	color=red,
+	mark=diamond,
+	]
+	table{./results/keyvee/SET_pipeline_1_w_10.cdf.results};
+	\addlegendentry{Keyvee, 10 clients};
+	\addplot[
+	color=red,
+	mark=square,
+	]
+	table{./results/keyvee/SET_pipeline_1_w_100.cdf.results};
+	\addlegendentry{Keyvee, 100 clients};
+	\addplot[
+	color=red,
+	mark=triangle,
+	]
+	table{./results/keyvee/SET_pipeline_1_w_500.cdf.results};
+	\addlegendentry{Keyvee, 500 clients};
+	\addplot[
+	color=red,
+	mark=star,
+	]
+	table{./results/keyvee/SET_pipeline_1_w_1000.cdf.results};
+	\addlegendentry{Keyvee, 1000 clients};
+	\end{axis}
+	\end{tikzpicture}
+	\caption{SET Latency w/o pipelining\label{fig:SET_L}}
+\end{figure}
+As seen in \ref{fig:SET_T}, without pipelining, SET throughput was roughly equal when there were few concurrent clients, but as pipelining increased, Keyvee's throughput improved significantly. 
+However, gains from pipelining would be eventually offset by the scaling issues of handling concurrent clients.
+Interestingly, at a pipeline length of 10 the biggest difference in scaling was found, since the benefits for a 50-long pipeline managed to maintain Keyvee's throughput somewhat.
+When comparing latency of the commands, Keyvee's latency only slightly behind Redis, but as the number of concurrent clients grew, the disparity in latency grew wider.
+
+\subsection{MSET Command}
+
+\begin{figure}[!htb]
+\begin{tikzpicture}[scale=0.65]
+\begin{axis}[
+xlabel = {Parallel Clients},
+ylabel = {Throughput (10\textsuperscript{4} Requests/sec)},
+legend columns = 3,
+transpose legend,
+legend style={at={(0.5,-0.2)},anchor=north}]
+\addplot[
+color=cyan,
+mark=diamond,
+]
+table{./results/redis/MSET__10_keys___pipeline_1_.results};
+\addlegendentry{Redis, no pipeline};
+\addplot[
+color=cyan,
+mark=square,
+]
+table{./results/redis/MSET__10_keys___pipeline_10_.results};
+\addlegendentry{Redis, pipeline of 10};
+\addplot[
+color=cyan,
+mark=triangle,
+]
+table{./results/redis/MSET__10_keys___pipeline_50_.results};
+\addlegendentry{Redis, pipeline of 50};
+\addplot[
+color=red,
+mark=diamond,
+]
+table{./results/keyvee/MSET__10_keys___pipeline_1_.results};
+\addlegendentry{Keyvee, no pipeline};
+\addplot[
+color=red,
+mark=square,
+]
+table{./results/keyvee/MSET__10_keys___pipeline_10_.results};
+\addlegendentry{Keyvee, pipeline of 10};
+\addplot[
+color=red,
+mark=triangle,
+]
+table{./results/keyvee/MSET__10_keys___pipeline_50_.results};
+\addlegendentry{Keyvee, pipeline of 50};
+\end{axis}
+\end{tikzpicture}
+\caption{MSET Throughput\label{fig:MSET_T}}
+\end{figure}
+\begin{figure}[!htb]
+\begin{tikzpicture}[scale=0.65]
+\begin{axis}[
+xmode = log,
+xlabel = {Maximum completion time},
+ylabel = {Percent of all requests},
+legend columns = 4,
+transpose legend,
+legend style={at={(0.5,-0.2)}, anchor=north}]
+	\addplot[
+	color=cyan,
+	mark=diamond,
+	]
+	table{./results/redis/MSET_10_keys__pipeline_1_w_10.cdf.results};
+	\addlegendentry{Redis, 10 clients};
+	\addplot[
+	color=cyan,
+	mark=square,
+	]
+	table{./results/redis/MSET_10_keys__pipeline_1_w_100.cdf.results};
+	\addlegendentry{Redis, 100 clients};
+	\addplot[
+	color=cyan,
+	mark=triangle,
+	]
+	table{./results/redis/MSET_10_keys__pipeline_1_w_500.cdf.results};
+	\addlegendentry{Redis, 500 clients};
+	\addplot[
+	color=cyan,
+	mark=star,
+	]
+	table{./results/redis/MSET_10_keys__pipeline_1_w_1000.cdf.results};
+	\addlegendentry{Redis, 1000 clients};
+	\addplot[
+	color=red,
+	mark=diamond,
+	]
+	table{./results/keyvee/MSET_10_keys__pipeline_1_w_10.cdf.results};
+	\addlegendentry{Keyvee, 10 clients};
+	\addplot[
+	color=red,
+	mark=square,
+	]
+	table{./results/keyvee/MSET_10_keys__pipeline_1_w_100.cdf.results};
+	\addlegendentry{Keyvee, 100 clients};
+	\addplot[
+	color=red,
+	mark=triangle,
+	]
+	table{./results/keyvee/MSET_10_keys__pipeline_1_w_500.cdf.results};
+	\addlegendentry{Keyvee, 500 clients};
+	\addplot[
+	color=red,
+	mark=star,
+	]
+	table{./results/keyvee/MSET_10_keys__pipeline_1_w_1000.cdf.results};
+	\addlegendentry{Keyvee, 1000 clients};
+	\end{axis}
+	\end{tikzpicture}
+	\caption{MSET Latency w/o pipelining\label{fig:MSET_L}}
+\end{figure}
+Compared to SET, MSET is slightly more complex and time consuming command, resulting in lower throughput for both applications, as seen in Figure \ref{fig:MSET_T}.
+It was here that Keyvee always had a lower throughput than Redis, even at low number of concurrent clients. 
+The disparity in performance became increasingly dramatic as the pipeline length increased and was one of the few areas where pipelining's scaling with Keyvee had little effect.
+Most notable how severe diminishing returns pipelining had on both applications; the difference between a pipeline of 10 and 50 was very small, even more so when looking at Keyvee.
+As with the SET command, Keyvee's latency became increasingly greater as the number of connected clients increased.
+
+\subsection{GET Command}
+
+\begin{figure}[!htb]
+\begin{tikzpicture}[scale=0.65]
+\begin{axis}[
+xlabel = {Parallel Clients},
+ylabel = {Throughput (10\textsuperscript{5} Requests/sec)},
+legend columns = 3,
+transpose legend,
+legend style={at={(0.5,-0.2)},anchor=north}]
+\addplot[
+color=cyan,
+mark=diamond,
+]
+table{./results/redis/GET__pipeline_1_.results};
+\addlegendentry{Redis, no pipeline};
+\addplot[
+color=cyan,
+mark=square,
+]
+table{./results/redis/GET__pipeline_10_.results};
+\addlegendentry{Redis, pipeline of 10};
+\addplot[
+color=cyan,
+mark=triangle,
+]
+table{./results/redis/GET__pipeline_50_.results};
+\addlegendentry{Redis, pipeline of 50};
+\addplot[
+color=red,
+mark=diamond,
+]
+table{./results/keyvee/GET__pipeline_1_.results};
+\addlegendentry{Keyvee, no pipeline};
+\addplot[
+color=red,
+mark=square,
+]
+table{./results/keyvee/GET__pipeline_10_.results};
+\addlegendentry{Keyvee, pipeline of 10};
+\addplot[
+color=red,
+mark=triangle,
+]
+table{./results/keyvee/GET__pipeline_50_.results};
+\addlegendentry{Keyvee, pipeline of 50};
+\end{axis}
+\end{tikzpicture}
+\caption{GET Throughput\label{fig:GET_T}}
+\end{figure}
+\begin{figure}[!htb]
+\begin{tikzpicture}[scale=0.65]
+\begin{axis}[
+xmode = log,
+xlabel = {Maximum completion time},
+ylabel = {Percent of all requests},
+legend columns = 4,
+transpose legend,
+legend style={at={(0.5,-0.2)}, anchor=north}]
+	\addplot[
+	color=cyan,
+	mark=diamond,
+	]
+	table{./results/redis/GET_pipeline_1_w_10.cdf.results};
+	\addlegendentry{Redis, 10 clients};
+	\addplot[
+	color=cyan,
+	mark=square,
+	]
+	table{./results/redis/GET_pipeline_1_w_100.cdf.results};
+	\addlegendentry{Redis, 100 clients};
+	\addplot[
+	color=cyan,
+	mark=triangle,
+	]
+	table{./results/redis/GET_pipeline_1_w_500.cdf.results};
+	\addlegendentry{Redis, 500 clients};
+	\addplot[
+	color=cyan,
+	mark=star,
+	]
+	table{./results/redis/GET_pipeline_1_w_1000.cdf.results};
+	\addlegendentry{Redis, 1000 clients};
+	\addplot[
+	color=red,
+	mark=diamond,
+	]
+	table{./results/keyvee/GET_pipeline_1_w_10.cdf.results};
+	\addlegendentry{Keyvee, 10 clients};
+	\addplot[
+	color=red,
+	mark=square,
+	]
+	table{./results/keyvee/GET_pipeline_1_w_100.cdf.results};
+	\addlegendentry{Keyvee, 100 clients};
+	\addplot[
+	color=red,
+	mark=triangle,
+	]
+	table{./results/keyvee/GET_pipeline_1_w_500.cdf.results};
+	\addlegendentry{Keyvee, 500 clients};
+	\addplot[
+	color=red,
+	mark=star,
+	]
+	table{./results/keyvee/GET_pipeline_1_w_1000.cdf.results};
+	\addlegendentry{Keyvee, 1000 clients};
+	\end{axis}
+	\end{tikzpicture}
+	\caption{GET Latency w/o pipelining\label{fig:GET_L}}
+\end{figure}
+The GET command is simpler than SET, and so Keyvee's throughput, shown in Figure \ref{fig:GET_T}, was relatively better when compared to the SET command.
+While it showed similar relative performance to SET when the pipeline was short, there was a higher threshold for when benefit from pipelining was negated by the problems with handling multiple clients; even at 500 clients performance was nearly equal.
+
+\subsection{PING Command}
+
+\begin{figure}[!htb]
+\begin{tikzpicture}[scale=0.65]
+\begin{axis}[
+xlabel = {Parallel Clients},
+ylabel = {Throughput (10\textsuperscript{5} Requests/sec)},
+legend columns = 3,
+transpose legend,
+legend style={at={(0.5,-0.2)},anchor=north}]
+\addplot[
+color=cyan,
+mark=diamond,
+]
+table{./results/redis/PING_BULK__pipeline_1_.results};
+\addlegendentry{Redis, no pipeline};
+\addplot[
+color=cyan,
+mark=square,
+]
+table{./results/redis/PING_BULK__pipeline_10_.results};
+\addlegendentry{Redis, pipeline of 10};
+\addplot[
+color=cyan,
+mark=triangle,
+]
+table{./results/redis/PING_BULK__pipeline_50_.results};
+\addlegendentry{Redis, pipeline of 50};
+\addplot[
+color=red,
+mark=diamond,
+]
+table{./results/keyvee/PING_BULK__pipeline_1_.results};
+\addlegendentry{Keyvee, no pipeline};
+\addplot[
+color=red,
+mark=square,
+]
+table{./results/keyvee/PING_BULK__pipeline_10_.results};
+\addlegendentry{Keyvee, pipeline of 10};
+\addplot[
+color=red,
+mark=triangle,
+]
+table{./results/keyvee/PING_BULK__pipeline_50_.results};
+\addlegendentry{Keyvee, pipeline of 50};
+\end{axis}
+\end{tikzpicture}
+\caption{PING Throughput\label{fig:PING_T}}
+\end{figure}
+\begin{figure}[!htb]
+\begin{tikzpicture}[scale=0.65]
+\begin{axis}[
+xmode = log,
+xlabel = {Maximum completion time},
+ylabel = {Percent of all requests},
+legend columns = 4,
+transpose legend,
+legend style={at={(0.5,-0.2)}, anchor=north}]
+	\addplot[
+	color=cyan,
+	mark=diamond,
+	]
+	table{./results/redis/PING_BULK_pipeline_50_w_10.cdf.results};
+	\addlegendentry{Redis, 10 clients};
+	\addplot[
+	color=cyan,
+	mark=square,
+	]
+	table{./results/redis/PING_BULK_pipeline_50_w_100.cdf.results};
+	\addlegendentry{Redis, 100 clients};
+	\addplot[
+	color=cyan,
+	mark=triangle,
+	]
+	table{./results/redis/PING_BULK_pipeline_50_w_500.cdf.results};
+	\addlegendentry{Redis, 500 clients};
+	\addplot[
+	color=cyan,
+	mark=star,
+	]
+	table{./results/redis/PING_BULK_pipeline_50_w_1000.cdf.results};
+	\addlegendentry{Redis, 1000 clients};
+	\addplot[
+	color=red,
+	mark=diamond,
+	]
+	table{./results/keyvee/PING_BULK_pipeline_50_w_10.cdf.results};
+	\addlegendentry{Keyvee, 10 clients};
+	\addplot[
+	color=red,
+	mark=square,
+	]
+	table{./results/keyvee/PING_BULK_pipeline_50_w_100.cdf.results};
+	\addlegendentry{Keyvee, 100 clients};
+	\addplot[
+	color=red,
+	mark=triangle,
+	]
+	table{./results/keyvee/PING_BULK_pipeline_50_w_500.cdf.results};
+	\addlegendentry{Keyvee, 500 clients};
+	\addplot[
+	color=red,
+	mark=star,
+	]
+	table{./results/keyvee/PING_BULK_pipeline_50_w_1000.cdf.results};
+	\addlegendentry{Keyvee, 1000 clients};
+	\end{axis}
+	\end{tikzpicture}
+	\caption{PING Latency with a pipeline of 50\label{fig:PING_L}}
+\end{figure}
+The PING command was the simplest command to implement because PING commands never referenced the internal datastore and have a static response of "PONG".
+Because of this simplicity, it heavily benefited from the scaling that pipelining provided.
+This resulted in results that broke the usual performance patterns, shown in Figure \ref{fig:PING_T}.
+Most notably, while it still showed the logarithmic performance loss like all the other commands, the tests done with a pipeline size of 50 showed Keyvee consistently having a much higher throughput than Redis.
+However, at shorter pipeline stages, the performance of PING for both applications were none too different than their performance with SET.
+Similarly, the latency at short pipeline sizes was unremarkable.
+However, as shown in Figure \ref{fig:PING_L}, at the larger pipeline sizes, Keyve was found to have a more gradual distribution curve, verses Redis' steep cliffs.
+Furthermore, Keyvee had less commands that took an extreme amount of time when compared to the other command types.
 
 \section{Conclusion}
 In this paper we described the implementation and evaluation of our unikernel key-value store, Keyvee.
 Our efforts are concentrated around implementing a subset of Redis's functionality using OCaml and the MirageOS toolchain.
 We then evaluated our implementation and compared it with Redis using Redis's benchmarking tool.
-While similar, if not superior, throughput was achieved in tests having few parallel clients, a scaling issue was found when Keyvee was subjected to larger parallel loads, resulting in poor throughput.
-The main source of the low throughput was identified as an underlying issue with Mirage OS's difficulty in handling large numbers of multiple clients.
+While similar, if not superior, throughput was generally achieved in tests having few parallel clients, a scaling issue was found when Keyvee was subjected to larger parallel loads, resulting in poor throughput.
+The main source of the low throughput was identified as an underlying issue with Mirage OS's difficulty in handling large numbers of multiple clients, however, we believe that this problem will be addressed as Xen, and unikernels as a whole, mature as a technology.
 
 \section{Acknowledgements}
 We thank the kind souls in the \#Mirage IRC chatroom for their relentless patience.
