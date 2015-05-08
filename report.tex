@@ -611,62 +611,68 @@ legend style={at={(0.5,-0.2)}, anchor=north}]
 	color=cyan,
 	mark=diamond,
 	]
-	table{./results/redis/PING_BULK_pipeline_1_w_10.cdf.results};
+	table{./results/redis/PING_BULK_pipeline_50_w_10.cdf.results};
 	\addlegendentry{Redis, 10 clients};
 	\addplot[
 	color=cyan,
 	mark=square,
 	]
-	table{./results/redis/PING_BULK_pipeline_1_w_100.cdf.results};
+	table{./results/redis/PING_BULK_pipeline_50_w_100.cdf.results};
 	\addlegendentry{Redis, 100 clients};
 	\addplot[
 	color=cyan,
 	mark=triangle,
 	]
-	table{./results/redis/PING_BULK_pipeline_1_w_500.cdf.results};
+	table{./results/redis/PING_BULK_pipeline_50_w_500.cdf.results};
 	\addlegendentry{Redis, 500 clients};
 	\addplot[
 	color=cyan,
 	mark=star,
 	]
-	table{./results/redis/PING_BULK_pipeline_1_w_1000.cdf.results};
+	table{./results/redis/PING_BULK_pipeline_50_w_1000.cdf.results};
 	\addlegendentry{Redis, 1000 clients};
 	\addplot[
 	color=red,
 	mark=diamond,
 	]
-	table{./results/keyvee/PING_BULK_pipeline_1_w_10.cdf.results};
+	table{./results/keyvee/PING_BULK_pipeline_50_w_10.cdf.results};
 	\addlegendentry{Keyvee, 10 clients};
 	\addplot[
 	color=red,
 	mark=square,
 	]
-	table{./results/keyvee/PING_BULK_pipeline_1_w_100.cdf.results};
+	table{./results/keyvee/PING_BULK_pipeline_50_w_100.cdf.results};
 	\addlegendentry{Keyvee, 100 clients};
 	\addplot[
 	color=red,
 	mark=triangle,
 	]
-	table{./results/keyvee/PING_BULK_pipeline_1_w_500.cdf.results};
+	table{./results/keyvee/PING_BULK_pipeline_50_w_500.cdf.results};
 	\addlegendentry{Keyvee, 500 clients};
 	\addplot[
 	color=red,
 	mark=star,
 	]
-	table{./results/keyvee/PING_BULK_pipeline_1_w_1000.cdf.results};
+	table{./results/keyvee/PING_BULK_pipeline_50_w_1000.cdf.results};
 	\addlegendentry{Keyvee, 1000 clients};
 	\end{axis}
 	\end{tikzpicture}
-	\caption{PING Latency w/o pipelining}
+	\caption{PING Latency with a pipeline of 50}
 \end{figure}
-Talk about Ping
+The PING command was the simplest command to implement and like with the simplicity of GET, it heavily benefited from the scaling that pipelining provided.
+This resulted in results that broke the usual performance patterns.
+Most notably, while it still showed the logarithmic performance loss like all the other commands, the tests done with a pipeline size of 50 showed Keyvee consistently having a much higher throughput than Redis.
+However, at shorter pipeline stages, the performance of PING for both applications were none too different than their performance with SET.
+Similarly, the latency at short pipeline sizes was unremarkable.
+At the larger pipeline sizes, Keyve was found to have a more gradual distribution curve, verses Redis' steep cliffs.
+Furthermore, Keyvee had less commands that took an extreme amount of time when compared to the other command types.
 
 \section{Conclusion}
 In this paper we described the implementation and evaluation of our unikernel key-value store, Keyvee.
 Our efforts are concentrated around implementing a subset of Redis's functionality using OCaml and the MirageOS toolchain.
 We then evaluated our implementation and compared it with Redis using Redis's benchmarking tool.
-While similar, if not superior, throughput was achieved in tests having few parallel clients, a scaling issue was found when Keyvee was subjected to larger parallel loads, resulting in poor throughput.
-The main source of the low throughput was identified as an underlying issue with Mirage OS's difficulty in handling large numbers of multiple clients.
+While similar, if not superior, throughput was generally achieved in tests having few parallel clients, a scaling issue was found when Keyvee was subjected to larger parallel loads, resulting in poor throughput.
+The main source of the low throughput was identified as an underlying issue with Mirage OS's difficulty in handling large numbers of multiple clients, however, we believe that this problem will be addressed as unikernels mature as a technology.
 
 \section{Acknowledgements}
 We thank the kind souls in the \#Mirage IRC chatroom for their relentless patience.
