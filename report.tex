@@ -367,8 +367,7 @@ table{./results/keyvee/MSET__10_keys___pipeline_50_.results};
 \addlegendentry{Keyvee, pipeline of 50};
 \end{axis}
 \end{tikzpicture}
-\caption{MSET Throughput}
-\label{fig:MSET_T}
+\caption{MSET Throughput\label{fig:MSET_T}}
 \end{figure}
 \begin{figure}[!htb]
 \begin{tikzpicture}[scale=0.65]
@@ -429,10 +428,9 @@ legend style={at={(0.5,-0.2)}, anchor=north}]
 	\addlegendentry{Keyvee, 1000 clients};
 	\end{axis}
 	\end{tikzpicture}
-	\caption{MSET Latency w/o pipelining}
-	\label{fig:MSET_L}
+	\caption{MSET Latency w/o pipelining\label{fig:MSET_L}}
 \end{figure}
-Compared to SET, MSET is slightly more complex and time consuming command, resulting in lower throughput for both applications, as seen in \ref{fig:MSET_T}.
+Compared to SET, MSET is slightly more complex and time consuming command, resulting in lower throughput for both applications, as seen in Figure \ref{fig:MSET_T}.
 It was here that Keyvee always had a lower throughput than Redis, even at low number of concurrent clients. 
 The disparity in performance became increasingly dramatic as the pipeline length increased and was one of the few areas where pipelining's scaling with Keyvee had little effect.
 Most notable how severe diminishing returns pipelining had on both applications; the difference between a pipeline of 10 and 50 was very small, even more so when looking at Keyvee.
@@ -486,7 +484,7 @@ table{./results/keyvee/GET__pipeline_50_.results};
 \addlegendentry{Keyvee, pipeline of 50};
 \end{axis}
 \end{tikzpicture}
-\caption{GET Throughput}
+\caption{GET Throughput\label{fig:GET_T}}
 \end{figure}
 \begin{figure}[!htb]
 \begin{tikzpicture}[scale=0.65]
@@ -547,9 +545,9 @@ legend style={at={(0.5,-0.2)}, anchor=north}]
 	\addlegendentry{Keyvee, 1000 clients};
 	\end{axis}
 	\end{tikzpicture}
-	\caption{GET Latency w/o pipelining}
+	\caption{GET Latency w/o pipelining\label{fig:GET_L}}
 \end{figure}
-The GET command is simpler than SET, and so Keyvee's throughput was relatively better when compared to the SET command.
+The GET command is simpler than SET, and so Keyvee's throughput, shown in Figure \ref{fig:GET_T}, was relatively better when compared to the SET command.
 While it showed similar relative performance to SET when the pipeline was short, there was a higher threshold for when benefit from pipelining was negated by the problems with handling multiple clients; even at 500 clients performance was nearly equal.
 
 \subsection{PING Command}
@@ -600,7 +598,7 @@ table{./results/keyvee/PING_BULK__pipeline_50_.results};
 \addlegendentry{Keyvee, pipeline of 50};
 \end{axis}
 \end{tikzpicture}
-\caption{PING Throughput}
+\caption{PING Throughput\label{fig:PING_T}}
 \end{figure}
 \begin{figure}[!htb]
 \begin{tikzpicture}[scale=0.65]
@@ -661,15 +659,15 @@ legend style={at={(0.5,-0.2)}, anchor=north}]
 	\addlegendentry{Keyvee, 1000 clients};
 	\end{axis}
 	\end{tikzpicture}
-	\caption{PING Latency with a pipeline of 50}
+	\caption{PING Latency with a pipeline of 50\label{fig:PING_L}}
 \end{figure}
 The PING command was the simplest command to implement because PING commands never referenced the internal datastore and have a static response of "PONG".
 Because of this simplicity, it heavily benefited from the scaling that pipelining provided.
-This resulted in results that broke the usual performance patterns.
+This resulted in results that broke the usual performance patterns, shown in Figure \ref{fig:PING_T}.
 Most notably, while it still showed the logarithmic performance loss like all the other commands, the tests done with a pipeline size of 50 showed Keyvee consistently having a much higher throughput than Redis.
 However, at shorter pipeline stages, the performance of PING for both applications were none too different than their performance with SET.
 Similarly, the latency at short pipeline sizes was unremarkable.
-At the larger pipeline sizes, Keyve was found to have a more gradual distribution curve, verses Redis' steep cliffs.
+However, as shown in Figure \ref{fig:PING_L}, at the larger pipeline sizes, Keyve was found to have a more gradual distribution curve, verses Redis' steep cliffs.
 Furthermore, Keyvee had less commands that took an extreme amount of time when compared to the other command types.
 
 \section{Conclusion}
