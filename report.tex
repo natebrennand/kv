@@ -204,7 +204,7 @@ With regards to the latency, each test showed a similar pattern, with Keyvee ten
 \subsection{SET Command}
 
 \begin{figure}[!htb]
-\begin{tikzpicture}
+\begin{tikzpicture}[scale=0.65]
 \begin{axis}[
 xlabel = {Parallel Clients},
 ylabel = {Throughput (10\textsuperscript{5} Requests/sec)},
@@ -252,7 +252,7 @@ table{./results/keyvee/SET__pipeline_50_.results};
 \caption{SET Throughput}
 \end{figure}
 \begin{figure}[!htb]
-\begin{tikzpicture}
+\begin{tikzpicture}[scale=0.65]
 \begin{axis}[
 xmode = log,
 xlabel = {Maximum completion time},
@@ -320,7 +320,7 @@ When comparing latency of the commands, Keyvee's latency only slightly behind Re
 \subsection{MSET Command}
 
 \begin{figure}[!htb]
-\begin{tikzpicture}
+\begin{tikzpicture}[scale=0.65]
 \begin{axis}[
 xlabel = {Parallel Clients},
 ylabel = {Throughput (10\textsuperscript{4} Requests/sec)},
@@ -368,7 +368,7 @@ table{./results/keyvee/MSET__10_keys___pipeline_50_.results};
 \caption{MSET Throughput}
 \end{figure}
 \begin{figure}[!htb]
-\begin{tikzpicture}
+\begin{tikzpicture}[scale=0.65]
 \begin{axis}[
 xmode = log,
 xlabel = {Maximum completion time},
@@ -437,7 +437,7 @@ As with the SET command, Keyvee's latency became increasingly greater as the num
 \subsection{GET Command}
 
 \begin{figure}[!htb]
-\begin{tikzpicture}
+\begin{tikzpicture}[scale=0.65]
 \begin{axis}[
 xlabel = {Parallel Clients},
 ylabel = {Throughput (10\textsuperscript{5} Requests/sec)},
@@ -485,7 +485,7 @@ table{./results/keyvee/GET__pipeline_50_.results};
 \caption{GET Throughput}
 \end{figure}
 \begin{figure}[!htb]
-\begin{tikzpicture}
+\begin{tikzpicture}[scale=0.65]
 \begin{axis}[
 xmode = log,
 xlabel = {Maximum completion time},
@@ -551,7 +551,7 @@ While it showed similar relative performance to SET when the pipeline was short,
 \subsection{PING Command}
 
 \begin{figure}[!htb]
-\begin{tikzpicture}
+\begin{tikzpicture}[scale=0.65]
 \begin{axis}[
 xlabel = {Parallel Clients},
 ylabel = {Throughput (10\textsuperscript{5} Requests/sec)},
@@ -599,7 +599,7 @@ table{./results/keyvee/PING_BULK__pipeline_50_.results};
 \caption{PING Throughput}
 \end{figure}
 \begin{figure}[!htb]
-\begin{tikzpicture}
+\begin{tikzpicture}[scale=0.65]
 \begin{axis}[
 xmode = log,
 xlabel = {Maximum completion time},
