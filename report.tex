@@ -205,7 +205,7 @@ With regards to the latency, each test showed a similar pattern, with Keyvee ten
 \subsection{SET Command}
 
 \begin{figure}[!htb]
-\begin{tikzpicture}[scale=0.65]
+\begin{tikzpicture}[scale=0.9]
 \begin{axis}[
 xlabel = {Parallel Clients},
 ylabel = {Throughput (10\textsuperscript{5} Requests/sec)},
@@ -254,7 +254,7 @@ table{./results/keyvee/SET__pipeline_50_.results};
 \end{figure}
 
 \begin{figure}[!htb]
-\begin{tikzpicture}[scale=0.65]
+\begin{tikzpicture}[scale=0.9]
 \begin{axis}[
 xmode = log,
 xlabel = {Maximum completion time},
@@ -314,6 +314,7 @@ legend style={at={(0.5,-0.2)}, anchor=north}]
 	\end{tikzpicture}
 	\caption{SET Latency w/o pipelining\label{fig:SET_L}}
 \end{figure}
+
 As seen in \ref{fig:SET_T}, without pipelining, SET throughput was roughly equal when there were few concurrent clients, but as pipelining increased, Keyvee's throughput improved significantly. 
 However, gains from pipelining would be eventually offset by the scaling issues of handling concurrent clients.
 Interestingly, at a pipeline length of 10 the biggest difference in scaling was found, since the benefits for a 50-long pipeline managed to maintain Keyvee's throughput somewhat.
@@ -322,7 +323,7 @@ When comparing latency of the commands, Keyvee's latency only slightly behind Re
 \subsection{MSET Command}
 
 \begin{figure}[!htb]
-\begin{tikzpicture}[scale=0.65]
+\begin{tikzpicture}[scale=0.9]
 \begin{axis}[
 xlabel = {Parallel Clients},
 ylabel = {Throughput (10\textsuperscript{4} Requests/sec)},
@@ -370,7 +371,7 @@ table{./results/keyvee/MSET__10_keys___pipeline_50_.results};
 \caption{MSET Throughput\label{fig:MSET_T}}
 \end{figure}
 \begin{figure}[!htb]
-\begin{tikzpicture}[scale=0.65]
+\begin{tikzpicture}[scale=0.9]
 \begin{axis}[
 xmode = log,
 xlabel = {Maximum completion time},
@@ -439,7 +440,7 @@ As with the SET command, Keyvee's latency became increasingly greater as the num
 \subsection{GET Command}
 
 \begin{figure}[!htb]
-\begin{tikzpicture}[scale=0.65]
+\begin{tikzpicture}[scale=0.9]
 \begin{axis}[
 xlabel = {Parallel Clients},
 ylabel = {Throughput (10\textsuperscript{5} Requests/sec)},
@@ -487,7 +488,7 @@ table{./results/keyvee/GET__pipeline_50_.results};
 \caption{GET Throughput\label{fig:GET_T}}
 \end{figure}
 \begin{figure}[!htb]
-\begin{tikzpicture}[scale=0.65]
+\begin{tikzpicture}[scale=0.9]
 \begin{axis}[
 xmode = log,
 xlabel = {Maximum completion time},
@@ -553,7 +554,7 @@ While it showed similar relative performance to SET when the pipeline was short,
 \subsection{PING Command}
 
 \begin{figure}[!htb]
-\begin{tikzpicture}[scale=0.65]
+\begin{tikzpicture}[scale=0.9]
 \begin{axis}[
 xlabel = {Parallel Clients},
 ylabel = {Throughput (10\textsuperscript{5} Requests/sec)},
@@ -601,7 +602,7 @@ table{./results/keyvee/PING_BULK__pipeline_50_.results};
 \caption{PING Throughput\label{fig:PING_T}}
 \end{figure}
 \begin{figure}[!htb]
-\begin{tikzpicture}[scale=0.65]
+\begin{tikzpicture}[scale=0.9]
 \begin{axis}[
 xmode = log,
 xlabel = {Maximum completion time},
