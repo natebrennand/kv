@@ -1,9 +1,12 @@
 \documentclass[english,10pt,twocolumn]{article}
 
+\usepackage[T1]{fontenc}
 \usepackage{times}
 \usepackage{fullpage}
 \usepackage{babel}
 \usepackage{graphicx}
+\usepackage{caption}
+
 
 
 \begin{document}
@@ -41,18 +44,23 @@ This issue is amplified by the lack of stability in allocated resources when run
 A unikernel is a specialized application capable of running directly on top of bare-metal or a hypervisor without a host operating system, eliminating the OS networking and scheduler layers to achieve better performance.
 In addition, unikernels have smaller attack surface and in the case of our project end-to-end memory safety.
 The unikernel approach mitigates many of the performance issues plaguing Redis that cannot be resolved at the application level and introduces increased security with interesting implications.
-We build Keyvee, an in-memory key-value database implementation on top of the Mirage OS\cite{mirage}, OCaml based library operating system that compiles applications to unikernels.
+We built Keyvee, an in-memory key-value database implementation on top of the Mirage OS\cite{mirage}, OCaml based library operating system that compiles applications to unikernels.
 OCaml is a ML-derived language that's strongly typed and has a type-inferring compiler.
-It unifies functional, imperative and object-oriented programming.
 Because Mirage OS and all applications compiled with the toolchain is entirely programmed using OCaml, Mirage OS provides correctness, memory safety and yields very reliable code.
-One goal of our Keyvee implementation is to make it a drop in replacement for Redis.
+Our Keyvee implementation is a drop in replacement for Redis, albeit currently with a more limited feature set.
 Supported methods have same signatures as on Redis and our server speaks the Redis Serialization Protocol\cite{redis-protocol}, RESP.
 We hope this compatibility will allow Keyvee to help establish unikernels as a viable piece of web application infrastructure.
 We measure the performance characteristics of both Keyvee and Redis in multiple situations to yield a direct comparison to our implementation.
 
 \subsection{Related Work}
 
-In addition to Mirage OS, there are several other different ongoing efforts to implement unikernels and achieve similar results.
+To our knowledge, there have not been any projects aiming to reimplement Redis with a unikernel toolchain.
+
+We chose to develop Keyvee in Mirage OS for numerous reasons.
+It is most mature of the aforementioned projects, promises good performance and has made good progress to make end-to-end memory safety a reality.
+Many developers of Mirage OS are associated with the Xen Project and it has good integration with Xen virtualization servers.
+
+In addition to Mirage OS which we chose to implement Keyvee, there are several other different ongoing efforts to implement unikernels and achieve similar results.
 HaLVM\cite{halvm} and LING\cite{ling} are examples of alternatives to Mirage OS, using Haskell and Erlang respectively as the basis of their unikernel implementation.
 Each of the unikernel implementations HaLVM, LING and Mirage, share the trait that you are limited to one language exclusively and compile into an image to run on top of the Xen hypervisor.
 Mirage OS and LING focuses on performance and predictability while HalVM focuses more on elegant compositional semantics using Haskell, according to the authors\cite{tripreport}.
@@ -68,11 +76,6 @@ Mirage however does not focus on support for legacy applications but rather focu
 Arrakis\cite{arrakis}, SPIN\cite{spin} and Exokernel\cite{exokernel} all reduce shared kernel components and allow each application to have customized operating system management, achieving some of the increased performance benefit of Mirage OS without tying you to one language runtime.
 Arrakis in particular benefits from increased support for virtualization in new hardware, which allows it to effectively run all applications in kernel space and achieve separation using hardware instructions, similar to how Mirage OS achieves separation through Xen.
 It allows applications to communicate directly to both hard drives and network cards, using SATA and other specific virtualization techniques only available on new hardware.
-
-We chose to develop Keyvee in Mirage OS for numerous reasons.
-It is most mature of the aforementioned projects, promises good performance and has made good progress to make end-to-end memory safety a reality.
-Many developers of Mirage OS are associated with the Xen Project and it has good support for Xen virtualization servers.
-
 
 \section{Background}
 
@@ -159,11 +162,20 @@ Here in this section we will talk about our implementation of Keyvee and how we 
 
 \subsection{Overview}
 
-\begin{figure}[ht]
-  \centering
-  \caption{Supported commands}
-  \includegraphics[width=0.5\textwidth]{images/commands_new}
-\end{figure}
+\begin{center}
+\captionof{table}{Supported commands}
+  \begin{tabular}{ | l | }
+    \hline
+    GET <key> \\ \hline
+    SET <key> <value> \\ \hline
+    DEL <key> \\ \hline
+    MGET <key> [<key> ...] \\ \hline
+    MSET <key> <value> [<key> <value> ...] \\ \hline
+    PING \\ \hline
+  \end{tabular}
+\end{center}
+
+
 
 Keyvee is implemented on top of the Mirage OS toolchain using OCaml.
 Currently, we support the GET, SET, DEL, PING, MSET and MGET commands.
@@ -189,14 +201,16 @@ Mirage uses the Lwt, cooperative threading library, extensively and every reques
 
 As Redis is a full featured and working database implementation it goes through a lot of steps that Keyvee does not.
 It starts by initializing a server state structure, which is where it stores configuration information such as the port it is running on, database files, replication, sort parameters and various other data.
-Redis is well written and one interesting things it does is set up number of shared objects or common Redis objects that are required by many different aspects of the system, one of them being a pool of shared integers which helps Redis being very efficient with memory.
+Redis is a well written and organized project and the codebase is straightforward to read despite all the optimizations present.
+One such optimization is a pool of shared objects that is created when the server initializes which decreases allocations needed.
+The shared objects are for constant replies like PONG and also include allocations for the first integers.
 Redis then creates a event loop, using epoll on Linux and kqueue on BSD and falls back to select if those are not available.
-This is what makes Redis so responsive and allows it to be single threaded but still serve thousands of clients simultaneously, and is comparable to what LWT and the LWT event engine does for KeyVee.
+This is what makes Redis so responsive and allows it to be single threaded but still serve thousands of clients simultaneously, and is comparable to what LWT and the LWT event engine does for Keyvee.
 After setting up the event loop, Redis further initalizes databases (it has support for multiple databases), TCP listening socket, sets up a server cron function which is called every 100 milliseconds and handles misc administrative tasks and finally registers a connection handler with the event loop and opens an append-only file if configured to do so.
 Redis accepts connections in the event loop using standard POSIX methods, and as RESP is a ASCII based protocol it parses strings to process the commands similarily to how Keyvee does this, albeit it does it in a very efficient manner.
 After parsing the command string, the command is looked up in the internal command table and it's executed.
 Write commands such as SET make the server have dirty data so the server is marked as having pages in memory that have changed.
-This is then used during the automatic save process and append-only file writing process.
+This is then used during the automatic save process and append-only log file writing process.
 
 TODO: Clean up
 
@@ -206,17 +220,17 @@ The benefits that can be gained from a Mirage OS implementation of Redis are mai
 
 \subsubsection{Performance}
 
-Although our current test implementation did not exceed Redis's implementation under heavy load, theoretically the Mirage OS implementation should be more performant by making the stack smaller and eliminating the OS networking and scheduling layers. We are certain that with more optimization work KeyVee would become more performant than Redis with equal functionality.
+Although our current test implementation did not exceed Redis's implementation under heavy load, theoretically the Mirage OS implementation should be more performant by making the stack smaller and eliminating the OS networking and scheduling layers. We are certain that with more optimization work Keyvee would become more performant than Redis with equal functionality.
 
 \subsubsection{Security}
 
 There are two security aspects of Mirage OS that are pertinant to our Keyvee implementation.
 By only compiling Keyvee into a OS image, a lot of extra services and weak points in traditional OS's are not run, and so with a smaller attack surface certain kinds of vulnerabilities are eliminated.
-In addition to minimizing the attack surface, Mirage OS applications are end-to-end memory safe.
-That means from the TCP/IP stack, up to SSL and the application code, everything is compiled using a memory-safe language which gives us guarantees that Keyvee is memory safe.
+In addition to minimizing the attack surface, Mirage OS applications are end-to-end memory safe because OCaml's runtime manages memory allocation and reclaims memory with a mature garbage collector.
+That means from the TCP/IP stack, up to SSL and the application code, everything is compiled using a memory-safe language which guarantees that Keyvee is completely memory safe.
 While Redis is well written and has good test coverage, it cannot be guaranteed to be memory-safe like Keyvee, being written purely in C.
 The recommendation for deployment of Redis is to put it behind a firewall, which is both because of lack of user access control (anyone can for example issue FLUSHDB and remove all data from server) but another concern is the lack of memory safety.
-This means Redis is vulnerable to buffer overflow and out of bounds errors for example which have been the main sources of vulnerabilities in server software, latest big example being the Heartbleed bug.
+This means Redis is vulnerable to buffer overflow and out of bounds errors for example which have been the main sources of vulnerabilities in server software, latest notable example being the Heartbleed bug.
 Meanwhile, Keyvee is completely memory safe and with addition of user access controls could be trusted enough to be fully exposed on the internet, which opens it up to a whole host of applications that Redis could only handle by having a server as a intermediary.
 For example, a mobile client could connect directly to Keyvee for data that needs no server processing instead of going through a intermediary server.
 
