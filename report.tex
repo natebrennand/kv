@@ -118,9 +118,6 @@ Mirage however does not focus on support for legacy applications but rather focu
 Arrakis\cite{arrakis}, SPIN\cite{spin} and Exokernel\cite{exokernel} all reduce shared kernel components and allow each application to have customized operating system management, achieving some of the increased performance benefit of MirageOS without tying you to one language runtime.
 Arrakis in particular benefits from increased support for virtualization in new hardware, which allows it to effectively run all applications in kernel space and achieve separation using hardware instructions, similar to how MirageOS achieves separation through Xen.
 
-
-
-
 \section{Design and Implementation}
 For Keyvee we have the following goals:
 \begin{itemize}
@@ -316,6 +313,344 @@ Without pipelining, SET throughput was roughly equal when there were few concurr
 However, gains from pipelining would be eventually offset by the scaling issues of handling concurrent clients.
 Interestingly, at a pipeline length of 10 the biggest difference in scaling was found, since the benefits for a 50-long pipeline managed to maintain Keyvee's throughput somewhat.
 When comparing latency of the commands, Keyvee's latency only slightly behind Redis, but as the number of concurrent clients grew, the disparity in latency grew wider.
+
+\subsection{MSET Command}
+
+\begin{figure}[!htb]
+\begin{tikzpicture}
+\begin{axis}[
+xlabel = {Parallel Clients},
+ylabel = {Throughput (10\textsuperscript{5} Requests/sec)},
+legend columns = 3,
+transpose legend,
+legend style={at={(0.5,-0.2)},anchor=north}]
+\addplot[
+color=blue,
+mark=diamond,
+]
+table{./results/redis/MSET__10_keys___pipeline_1_.results};
+\addlegendentry{Redis, no pipeline};
+\addplot[
+color=blue,
+mark=square,
+]
+table{./results/redis/MSET__10_keys___pipeline_10_.results};
+\addlegendentry{Redis, pipeline of 10};
+\addplot[
+color=blue,
+mark=triangle,
+]
+table{./results/redis/MSET__10_keys___pipeline_50_.results};
+\addlegendentry{Redis, pipeline of 50};
+\addplot[
+color=red,
+mark=diamond,
+]
+table{./results/keyvee/MSET__10_keys___pipeline_1_.results};
+\addlegendentry{Keyvee, no pipeline};
+\addplot[
+color=red,
+mark=square,
+]
+table{./results/keyvee/MSET__10_keys___pipeline_10_.results};
+\addlegendentry{Keyvee, pipeline of 10};
+\addplot[
+color=red,
+mark=triangle,
+]
+table{./results/keyvee/MSET__10_keys___pipeline_50_.results};
+\addlegendentry{Keyvee, pipeline of 50};
+\end{axis}
+\end{tikzpicture}
+\caption{MSET Throughput}
+\end{figure}
+\begin{figure}[!htb]
+\begin{tikzpicture}
+\begin{axis}[
+xmode = log,
+xlabel = {Maximum completion time},
+ylabel = {Percent of all requests},
+legend columns = 4,
+transpose legend,
+legend style={at={(0.5,-0.2)}, anchor=north}]
+	\addplot[
+	color=blue,
+	mark=diamond,
+	]
+	table{./results/redis/MSET_10_keys__pipeline_1_w_10.cdf.results};
+	\addlegendentry{Redis, 10 clients};
+	\addplot[
+	color=blue,
+	mark=square,
+	]
+	table{./results/redis/MSET_10_keys__pipeline_1_w_100.cdf.results};
+	\addlegendentry{Redis, 100 clients};
+	\addplot[
+	color=blue,
+	mark=triangle,
+	]
+	table{./results/redis/MSET_10_keys__pipeline_1_w_500.cdf.results};
+	\addlegendentry{Redis, 500 clients};
+	\addplot[
+	color=blue,
+	mark=star,
+	]
+	table{./results/redis/MSET_10_keys__pipeline_1_w_1000.cdf.results};
+	\addlegendentry{Redis, 1000 clients};
+	\addplot[
+	color=red,
+	mark=diamond,
+	]
+	table{./results/keyvee/MSET_10_keys__pipeline_1_w_10.cdf.results};
+	\addlegendentry{Keyvee, 10 clients};
+	\addplot[
+	color=red,
+	mark=square,
+	]
+	table{./results/keyvee/MSET_10_keys__pipeline_1_w_100.cdf.results};
+	\addlegendentry{Keyvee, 100 clients};
+	\addplot[
+	color=red,
+	mark=triangle,
+	]
+	table{./results/keyvee/MSET_10_keys__pipeline_1_w_500.cdf.results};
+	\addlegendentry{Keyvee, 500 clients};
+	\addplot[
+	color=red,
+	mark=star,
+	]
+	table{./results/keyvee/MSET_10_keys__pipeline_1_w_1000.cdf.results};
+	\addlegendentry{Keyvee, 1000 clients};
+	\end{axis}
+	\end{tikzpicture}
+	\caption{MSET Latency w/o pipelining}
+\end{figure}
+Placeholder Text
+
+\subsection{GET Command}
+
+\begin{figure}[!htb]
+\begin{tikzpicture}
+\begin{axis}[
+xlabel = {Parallel Clients},
+ylabel = {Throughput (10\textsuperscript{5} Requests/sec)},
+legend columns = 3,
+transpose legend,
+legend style={at={(0.5,-0.2)},anchor=north}]
+\addplot[
+color=blue,
+mark=diamond,
+]
+table{./results/redis/GET__pipeline_1_.results};
+\addlegendentry{Redis, no pipeline};
+\addplot[
+color=blue,
+mark=square,
+]
+table{./results/redis/GET__pipeline_10_.results};
+\addlegendentry{Redis, pipeline of 10};
+\addplot[
+color=blue,
+mark=triangle,
+]
+table{./results/redis/GET__pipeline_50_.results};
+\addlegendentry{Redis, pipeline of 50};
+\addplot[
+color=red,
+mark=diamond,
+]
+table{./results/keyvee/GET__pipeline_1_.results};
+\addlegendentry{Keyvee, no pipeline};
+\addplot[
+color=red,
+mark=square,
+]
+table{./results/keyvee/GET__pipeline_10_.results};
+\addlegendentry{Keyvee, pipeline of 10};
+\addplot[
+color=red,
+mark=triangle,
+]
+table{./results/keyvee/GET__pipeline_50_.results};
+\addlegendentry{Keyvee, pipeline of 50};
+\end{axis}
+\end{tikzpicture}
+\caption{GET Throughput}
+\end{figure}
+\begin{figure}[!htb]
+\begin{tikzpicture}
+\begin{axis}[
+xmode = log,
+xlabel = {Maximum completion time},
+ylabel = {Percent of all requests},
+legend columns = 4,
+transpose legend,
+legend style={at={(0.5,-0.2)}, anchor=north}]
+	\addplot[
+	color=blue,
+	mark=diamond,
+	]
+	table{./results/redis/GET_pipeline_1_w_10.cdf.results};
+	\addlegendentry{Redis, 10 clients};
+	\addplot[
+	color=blue,
+	mark=square,
+	]
+	table{./results/redis/GET_pipeline_1_w_100.cdf.results};
+	\addlegendentry{Redis, 100 clients};
+	\addplot[
+	color=blue,
+	mark=triangle,
+	]
+	table{./results/redis/GET_pipeline_1_w_500.cdf.results};
+	\addlegendentry{Redis, 500 clients};
+	\addplot[
+	color=blue,
+	mark=star,
+	]
+	table{./results/redis/GET_pipeline_1_w_1000.cdf.results};
+	\addlegendentry{Redis, 1000 clients};
+	\addplot[
+	color=red,
+	mark=diamond,
+	]
+	table{./results/keyvee/GET_pipeline_1_w_10.cdf.results};
+	\addlegendentry{Keyvee, 10 clients};
+	\addplot[
+	color=red,
+	mark=square,
+	]
+	table{./results/keyvee/GET_pipeline_1_w_100.cdf.results};
+	\addlegendentry{Keyvee, 100 clients};
+	\addplot[
+	color=red,
+	mark=triangle,
+	]
+	table{./results/keyvee/GET_pipeline_1_w_500.cdf.results};
+	\addlegendentry{Keyvee, 500 clients};
+	\addplot[
+	color=red,
+	mark=star,
+	]
+	table{./results/keyvee/GET_pipeline_1_w_1000.cdf.results};
+	\addlegendentry{Keyvee, 1000 clients};
+	\end{axis}
+	\end{tikzpicture}
+	\caption{GET Latency w/o pipelining}
+\end{figure}
+Talk About GET
+\subsection{PING Command}
+
+\begin{figure}[!htb]
+\begin{tikzpicture}
+\begin{axis}[
+xlabel = {Parallel Clients},
+ylabel = {Throughput (10\textsuperscript{5} Requests/sec)},
+legend columns = 3,
+transpose legend,
+legend style={at={(0.5,-0.2)},anchor=north}]
+\addplot[
+color=blue,
+mark=diamond,
+]
+table{./results/redis/PING_BULK__pipeline_1_.results};
+\addlegendentry{Redis, no pipeline};
+\addplot[
+color=blue,
+mark=square,
+]
+table{./results/redis/PING_BULK__pipeline_10_.results};
+\addlegendentry{Redis, pipeline of 10};
+\addplot[
+color=blue,
+mark=triangle,
+]
+table{./results/redis/PING_BULK__pipeline_50_.results};
+\addlegendentry{Redis, pipeline of 50};
+\addplot[
+color=red,
+mark=diamond,
+]
+table{./results/keyvee/PING_BULK__pipeline_1_.results};
+\addlegendentry{Keyvee, no pipeline};
+\addplot[
+color=red,
+mark=square,
+]
+table{./results/keyvee/PING_BULK__pipeline_10_.results};
+\addlegendentry{Keyvee, pipeline of 10};
+\addplot[
+color=red,
+mark=triangle,
+]
+table{./results/keyvee/PING_BULK__pipeline_50_.results};
+\addlegendentry{Keyvee, pipeline of 50};
+\end{axis}
+\end{tikzpicture}
+\caption{PING Throughput}
+\end{figure}
+\begin{figure}[!htb]
+\begin{tikzpicture}
+\begin{axis}[
+xmode = log,
+xlabel = {Maximum completion time},
+ylabel = {Percent of all requests},
+legend columns = 4,
+transpose legend,
+legend style={at={(0.5,-0.2)}, anchor=north}]
+	\addplot[
+	color=blue,
+	mark=diamond,
+	]
+	table{./results/redis/PING_BULK_pipeline_1_w_10.cdf.results};
+	\addlegendentry{Redis, 10 clients};
+	\addplot[
+	color=blue,
+	mark=square,
+	]
+	table{./results/redis/PING_BULK_pipeline_1_w_100.cdf.results};
+	\addlegendentry{Redis, 100 clients};
+	\addplot[
+	color=blue,
+	mark=triangle,
+	]
+	table{./results/redis/PING_BULK_pipeline_1_w_500.cdf.results};
+	\addlegendentry{Redis, 500 clients};
+	\addplot[
+	color=blue,
+	mark=star,
+	]
+	table{./results/redis/PING_BULK_pipeline_1_w_1000.cdf.results};
+	\addlegendentry{Redis, 1000 clients};
+	\addplot[
+	color=red,
+	mark=diamond,
+	]
+	table{./results/keyvee/PING_BULK_pipeline_1_w_10.cdf.results};
+	\addlegendentry{Keyvee, 10 clients};
+	\addplot[
+	color=red,
+	mark=square,
+	]
+	table{./results/keyvee/PING_BULK_pipeline_1_w_100.cdf.results};
+	\addlegendentry{Keyvee, 100 clients};
+	\addplot[
+	color=red,
+	mark=triangle,
+	]
+	table{./results/keyvee/PING_BULK_pipeline_1_w_500.cdf.results};
+	\addlegendentry{Keyvee, 500 clients};
+	\addplot[
+	color=red,
+	mark=star,
+	]
+	table{./results/keyvee/PING_BULK_pipeline_1_w_1000.cdf.results};
+	\addlegendentry{Keyvee, 1000 clients};
+	\end{axis}
+	\end{tikzpicture}
+	\caption{PING Latency w/o pipelining}
+\end{figure}
+Talk about Ping
 
 \section{Conclusion}
 In this paper we described the implementation and evaluation of our unikernel key-value store, Keyvee.
