@@ -207,153 +207,115 @@ Upon further examination of the code and testing, it was found that the overhead
 \begin{tikzpicture}
 \begin{axis}[
 xlabel = {Parallel Clients},
-ylabel = {Throughput (Requests/sec)}]
+ylabel = {Throughput (10\textsuperscript{5} Requests/sec)},
+legend columns = 3,
+transpose legend,
+legend style={at={(0.5,-0.2)},anchor=north}]
 \addplot[
 color=blue,
 mark=diamond,
 ]
 table{./results/redis/SET__pipeline_1_.results};
+\addlegendentry{Redis, no pipeline};
 \addplot[
 color=blue,
 mark=square,
 ]
 table{./results/redis/SET__pipeline_10_.results};
+\addlegendentry{Redis, pipeline of 10};
 \addplot[
 color=blue,
 mark=triangle,
 ]
 table{./results/redis/SET__pipeline_50_.results};
+\addlegendentry{Redis, pipeline of 50};
 \addplot[
 color=red,
 mark=diamond,
 ]
 table{./results/keyvee/SET__pipeline_1_.results};
+\addlegendentry{Keyvee, no pipeline};
 \addplot[
 color=red,
 mark=square,
 ]
 table{./results/keyvee/SET__pipeline_10_.results};
+\addlegendentry{Keyvee, pipeline of 10};
 \addplot[
 color=red,
 mark=triangle,
 ]
 table{./results/keyvee/SET__pipeline_50_.results};
+\addlegendentry{Keyvee, pipeline of 50};
 \end{axis}
 \end{tikzpicture}
-\caption{SET Throughput. Blue is Redis, red is Keyvee}
+\caption{SET Throughput}
 \end{figure}
-
 \begin{figure}[!htb]
-	\begin{tikzpicture}
-	\begin{axis}[
-	xmode = log,
-	ymode = log,
-	xlabel = {Maximum completion time},
-	ylabel = {Precent of all requests}]
+\begin{tikzpicture}
+\begin{axis}[
+xmode = log,
+xlabel = {Maximum completion time},
+ylabel = {Percent of all requests},
+legend columns = 4,
+transpose legend,
+legend style={at={(0.5,-0.2)}, anchor=north}]
 	\addplot[
 	color=blue,
+	mark=diamond,
 	]
 	table{./results/redis/SET_pipeline_1_w_10.cdf.results};
+	\addlegendentry{Redis, 10 clients};
 	\addplot[
 	color=blue,
+	mark=square,
 	]
 	table{./results/redis/SET_pipeline_1_w_100.cdf.results};
+	\addlegendentry{Redis, 100 clients};
 	\addplot[
 	color=blue,
+	mark=triangle,
 	]
 	table{./results/redis/SET_pipeline_1_w_500.cdf.results};
+	\addlegendentry{Redis, 500 clients};
 	\addplot[
 	color=blue,
+	mark=star,
 	]
 	table{./results/redis/SET_pipeline_1_w_1000.cdf.results};
-	\addplot[
-	color=blue,
-	]
-	table{./results/redis/SET_pipeline_10_w_10.cdf.results};
-	\addplot[
-	color=blue,
-	]
-	table{./results/redis/SET_pipeline_10_w_100.cdf.results};
-	\addplot[
-	color=blue,
-	]
-	table{./results/redis/SET_pipeline_10_w_500.cdf.results};
-	\addplot[
-	color=blue,
-	]
-	table{./results/redis/SET_pipeline_10_w_1000.cdf.results};
-	\addplot[
-	color=blue,
-	]
-	table{./results/redis/SET_pipeline_50_w_10.cdf.results};
-	\addplot[
-	color=blue,
-	]
-	table{./results/redis/SET_pipeline_50_w_100.cdf.results};
-	\addplot[
-	color=blue,
-	]
-	table{./results/redis/SET_pipeline_50_w_500.cdf.results};
-	\addplot[
-	color=blue,
-	]
-	table{./results/redis/SET_pipeline_50_w_1000.cdf.results};
+	\addlegendentry{Redis, 1000 clients};
 	\addplot[
 	color=red,
+	mark=diamond,
 	]
 	table{./results/keyvee/SET_pipeline_1_w_10.cdf.results};
+	\addlegendentry{Keyvee, 10 clients};
 	\addplot[
 	color=red,
+	mark=square,
 	]
 	table{./results/keyvee/SET_pipeline_1_w_100.cdf.results};
+	\addlegendentry{Keyvee, 100 clients};
 	\addplot[
 	color=red,
+	mark=triangle,
 	]
 	table{./results/keyvee/SET_pipeline_1_w_500.cdf.results};
+	\addlegendentry{Keyvee, 500 clients};
 	\addplot[
 	color=red,
+	mark=star,
 	]
 	table{./results/keyvee/SET_pipeline_1_w_1000.cdf.results};
-	\addplot[
-	color=red,
-	]
-	table{./results/keyvee/SET_pipeline_10_w_10.cdf.results};
-	\addplot[
-	color=red,
-	]
-	table{./results/keyvee/SET_pipeline_10_w_100.cdf.results};
-	\addplot[
-	color=red,
-	]
-	table{./results/keyvee/SET_pipeline_10_w_500.cdf.results};
-	\addplot[
-	color=red,
-	]
-	table{./results/keyvee/SET_pipeline_10_w_1000.cdf.results};
-	\addplot[
-	color=red,
-	]
-	table{./results/keyvee/SET_pipeline_50_w_10.cdf.results};
-	\addplot[
-	color=red,
-	]
-	table{./results/keyvee/SET_pipeline_50_w_100.cdf.results};
-	\addplot[
-	color=red,
-	]
-	table{./results/keyvee/SET_pipeline_50_w_500.cdf.results};
-	\addplot[
-	color=red,
-	]
-	table{./results/keyvee/SET_pipeline_50_w_1000.cdf.results};
+	\addlegendentry{Keyvee, 1000 clients};
 	\end{axis}
 	\end{tikzpicture}
-	\caption{SET Latency. Blue is Redis, red is Keyvee}
+	\caption{SET Latency w/o pipelining}
 \end{figure}
-
 Without pipelining, SET throughput was roughly equal when there were few concurrent clients, but as pipelining increased, Keyvee's throughput improved significantly. 
 However, gains from pipelining would be eventually offset by the scaling issues of handling concurrent clients.
 Interestingly, at a pipeline length of 10 the biggest difference in scaling was found, since the benefits for a 50-long pipeline managed to maintain Keyvee's throughput somewhat.
+When comparing latency of the commands, Keyvee's latency only slightly behind Redis, but as the number of concurrent clients grew, the disparity in latency grew wider.
 
 \section{Conclusion}
 In this paper we described the implementation and evaluation of our unikernel key-value store, Keyvee.
