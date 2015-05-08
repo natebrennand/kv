@@ -182,6 +182,7 @@ We used a Redis 2.8 installation on Xen as the comparison application to Keyvee.
 The test clients were hosted by the supervising host on Xen.
 
 Using the Redis benchmark suite to examine Keyvee provided guarantees that the Redis communication protocols were properly fulfilled and provided a common means of measuring throughput.
+The distribution of command latency was also recorded, as it was automatically provided by the benchmark suite.
 Four commands were implemented and tested: SET, which assigned a single key its value; MSET, which assigned values to multiple keys; GET, which retrieves the value of a given key; and PING, which tests the server's connectivity.
 
 Three aspects of scalability were tested: raw request volume, request parallelization, and request pipelining.
@@ -190,13 +191,15 @@ For parallelization, the remote host would set up a group of 10, 100, 500, one t
 Regarding pipelining, requests were pipelined with either 1, 10, or 50 requests sent per packet.
 Each benchmark setup, in conjunction with a key space size of 1 and a key size of 20 bytes, used a combination of these three aspects, resulting in a total of 16 different tests.
 
-\subsection{Throughput Performance}
+\subsection{Overall Performance}
 
 Increasing the number of total requests had no significant effect on the relative throughput of Keyvee when compared to Redis.
-Pipelining proved to scale better with Keyvee, but it's benefit was overshadowed by the profound effect scaling the number of concurrent clients had on throughput
-Across all the implemented commands, Keyvee performed just as well, if not better, than Redis when very few clients were connecting at once.
-However, Keyvee's throughput decreased logarithmically as the number of simultaneous clients increased, and would have consistently lower throughput than Reids after a very low threshold, with some variance between commands.
+Throughput increases through pipelining proved to scale better with Keyvee, but its benefit was usually overtaken by the profound effect scaling the number of concurrent clients had on throughput.
+Except for one of the implemented commands, Keyvee performed just as well, if not better, than Redis when very few clients were connecting at once.
+However, Keyvee's throughput decreased logarithmically as the number of simultaneous clients increased, while Redis would only have a slight linear decrease, if at all.
+This meant that Keyvee would usually have consistently lower throughput than Redis after a certain low threshold, with some variance between commands.
 Upon further examination of the code and testing, it was found that the overhead from the light-weight threads used by Mirage to handle simultaneous connections resulted in the severely reduced throughput.
+With regards to the latency, each test showed a similar pattern, with Keyvee tending to have a much wider distribution, caused mainly by having a low number of commands taking an extradordinary amount of time.
 
 \subsection{SET Command}
 
@@ -209,19 +212,19 @@ legend columns = 3,
 transpose legend,
 legend style={at={(0.5,-0.2)},anchor=north}]
 \addplot[
-color=blue,
+color=cyan,
 mark=diamond,
 ]
 table{./results/redis/SET__pipeline_1_.results};
 \addlegendentry{Redis, no pipeline};
 \addplot[
-color=blue,
+color=cyan,
 mark=square,
 ]
 table{./results/redis/SET__pipeline_10_.results};
 \addlegendentry{Redis, pipeline of 10};
 \addplot[
-color=blue,
+color=cyan,
 mark=triangle,
 ]
 table{./results/redis/SET__pipeline_50_.results};
@@ -258,25 +261,25 @@ legend columns = 4,
 transpose legend,
 legend style={at={(0.5,-0.2)}, anchor=north}]
 	\addplot[
-	color=blue,
+	color=cyan,
 	mark=diamond,
 	]
 	table{./results/redis/SET_pipeline_1_w_10.cdf.results};
 	\addlegendentry{Redis, 10 clients};
 	\addplot[
-	color=blue,
+	color=cyan,
 	mark=square,
 	]
 	table{./results/redis/SET_pipeline_1_w_100.cdf.results};
 	\addlegendentry{Redis, 100 clients};
 	\addplot[
-	color=blue,
+	color=cyan,
 	mark=triangle,
 	]
 	table{./results/redis/SET_pipeline_1_w_500.cdf.results};
 	\addlegendentry{Redis, 500 clients};
 	\addplot[
-	color=blue,
+	color=cyan,
 	mark=star,
 	]
 	table{./results/redis/SET_pipeline_1_w_1000.cdf.results};
@@ -320,24 +323,24 @@ When comparing latency of the commands, Keyvee's latency only slightly behind Re
 \begin{tikzpicture}
 \begin{axis}[
 xlabel = {Parallel Clients},
-ylabel = {Throughput (10\textsuperscript{5} Requests/sec)},
+ylabel = {Throughput (10\textsuperscript{4} Requests/sec)},
 legend columns = 3,
 transpose legend,
 legend style={at={(0.5,-0.2)},anchor=north}]
 \addplot[
-color=blue,
+color=cyan,
 mark=diamond,
 ]
 table{./results/redis/MSET__10_keys___pipeline_1_.results};
 \addlegendentry{Redis, no pipeline};
 \addplot[
-color=blue,
+color=cyan,
 mark=square,
 ]
 table{./results/redis/MSET__10_keys___pipeline_10_.results};
 \addlegendentry{Redis, pipeline of 10};
 \addplot[
-color=blue,
+color=cyan,
 mark=triangle,
 ]
 table{./results/redis/MSET__10_keys___pipeline_50_.results};
@@ -374,25 +377,25 @@ legend columns = 4,
 transpose legend,
 legend style={at={(0.5,-0.2)}, anchor=north}]
 	\addplot[
-	color=blue,
+	color=cyan,
 	mark=diamond,
 	]
 	table{./results/redis/MSET_10_keys__pipeline_1_w_10.cdf.results};
 	\addlegendentry{Redis, 10 clients};
 	\addplot[
-	color=blue,
+	color=cyan,
 	mark=square,
 	]
 	table{./results/redis/MSET_10_keys__pipeline_1_w_100.cdf.results};
 	\addlegendentry{Redis, 100 clients};
 	\addplot[
-	color=blue,
+	color=cyan,
 	mark=triangle,
 	]
 	table{./results/redis/MSET_10_keys__pipeline_1_w_500.cdf.results};
 	\addlegendentry{Redis, 500 clients};
 	\addplot[
-	color=blue,
+	color=cyan,
 	mark=star,
 	]
 	table{./results/redis/MSET_10_keys__pipeline_1_w_1000.cdf.results};
@@ -425,7 +428,11 @@ legend style={at={(0.5,-0.2)}, anchor=north}]
 	\end{tikzpicture}
 	\caption{MSET Latency w/o pipelining}
 \end{figure}
-Placeholder Text
+Compared to SET, MSET is slightly more complex and time consuming command, resulting in lower throughput for both applications.
+It was here that Keyvee always had a lower throughput than Redis, even at low number of concurrent clients. 
+The disparity in performance became increasingly dramatic as the pipeline length increased and was one of the few areas where pipelining's scaling with Keyvee had little effect.
+Most notable how severe diminishing returns pipelining had on both applications; the difference between a pipeline of 10 and 50 was very small, even more so when looking at Keyvee.
+As with the SET command, Keyvee's latency became increasingly greater as the number of connected clients increased.
 
 \subsection{GET Command}
 
@@ -438,19 +445,19 @@ legend columns = 3,
 transpose legend,
 legend style={at={(0.5,-0.2)},anchor=north}]
 \addplot[
-color=blue,
+color=cyan,
 mark=diamond,
 ]
 table{./results/redis/GET__pipeline_1_.results};
 \addlegendentry{Redis, no pipeline};
 \addplot[
-color=blue,
+color=cyan,
 mark=square,
 ]
 table{./results/redis/GET__pipeline_10_.results};
 \addlegendentry{Redis, pipeline of 10};
 \addplot[
-color=blue,
+color=cyan,
 mark=triangle,
 ]
 table{./results/redis/GET__pipeline_50_.results};
@@ -487,25 +494,25 @@ legend columns = 4,
 transpose legend,
 legend style={at={(0.5,-0.2)}, anchor=north}]
 	\addplot[
-	color=blue,
+	color=cyan,
 	mark=diamond,
 	]
 	table{./results/redis/GET_pipeline_1_w_10.cdf.results};
 	\addlegendentry{Redis, 10 clients};
 	\addplot[
-	color=blue,
+	color=cyan,
 	mark=square,
 	]
 	table{./results/redis/GET_pipeline_1_w_100.cdf.results};
 	\addlegendentry{Redis, 100 clients};
 	\addplot[
-	color=blue,
+	color=cyan,
 	mark=triangle,
 	]
 	table{./results/redis/GET_pipeline_1_w_500.cdf.results};
 	\addlegendentry{Redis, 500 clients};
 	\addplot[
-	color=blue,
+	color=cyan,
 	mark=star,
 	]
 	table{./results/redis/GET_pipeline_1_w_1000.cdf.results};
@@ -538,7 +545,9 @@ legend style={at={(0.5,-0.2)}, anchor=north}]
 	\end{tikzpicture}
 	\caption{GET Latency w/o pipelining}
 \end{figure}
-Talk About GET
+The GET command is simpler than SET, and so Keyvee's throughput was relatively better when compared to the SET command.
+While it showed similar relative performance to SET when the pipeline was short, there was a higher threshold for when benefit from pipelining was negated by the problems with handling multiple clients; even at 500 clients performance was nearly equal.
+
 \subsection{PING Command}
 
 \begin{figure}[!htb]
@@ -550,19 +559,19 @@ legend columns = 3,
 transpose legend,
 legend style={at={(0.5,-0.2)},anchor=north}]
 \addplot[
-color=blue,
+color=cyan,
 mark=diamond,
 ]
 table{./results/redis/PING_BULK__pipeline_1_.results};
 \addlegendentry{Redis, no pipeline};
 \addplot[
-color=blue,
+color=cyan,
 mark=square,
 ]
 table{./results/redis/PING_BULK__pipeline_10_.results};
 \addlegendentry{Redis, pipeline of 10};
 \addplot[
-color=blue,
+color=cyan,
 mark=triangle,
 ]
 table{./results/redis/PING_BULK__pipeline_50_.results};
@@ -599,25 +608,25 @@ legend columns = 4,
 transpose legend,
 legend style={at={(0.5,-0.2)}, anchor=north}]
 	\addplot[
-	color=blue,
+	color=cyan,
 	mark=diamond,
 	]
 	table{./results/redis/PING_BULK_pipeline_1_w_10.cdf.results};
 	\addlegendentry{Redis, 10 clients};
 	\addplot[
-	color=blue,
+	color=cyan,
 	mark=square,
 	]
 	table{./results/redis/PING_BULK_pipeline_1_w_100.cdf.results};
 	\addlegendentry{Redis, 100 clients};
 	\addplot[
-	color=blue,
+	color=cyan,
 	mark=triangle,
 	]
 	table{./results/redis/PING_BULK_pipeline_1_w_500.cdf.results};
 	\addlegendentry{Redis, 500 clients};
 	\addplot[
-	color=blue,
+	color=cyan,
 	mark=star,
 	]
 	table{./results/redis/PING_BULK_pipeline_1_w_1000.cdf.results};
