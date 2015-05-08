@@ -1,4 +1,3 @@
-
 ====== PING_INLINE (pipeline 1) ======
   1000000 requests completed in 36.49 seconds
   10 parallel clients
@@ -54,7 +53,6 @@
 99.99% <= 2 milliseconds
 100.00% <= 2 milliseconds
 19426.91 requests per second
-
 
 ====== PING_INLINE (pipeline 10) ======
   1000000 requests completed in 4.33 seconds
@@ -115,7 +113,6 @@
 99.93% <= 12 milliseconds
 100.00% <= 12 milliseconds
 40746.48 requests per second
-
 
 ====== PING_INLINE (pipeline 50) ======
   1000000 requests completed in 1.54 seconds
@@ -196,7 +193,6 @@
 100.00% <= 233 milliseconds
 100.00% <= 233 milliseconds
 43706.30 requests per second
-
 
 ====== PING_INLINE (pipeline 1) ======
   1000000 requests completed in 41.19 seconds
@@ -295,7 +291,6 @@
 100.00% <= 14 milliseconds
 100.00% <= 14 milliseconds
 14592.79 requests per second
-
 
 ====== PING_INLINE (pipeline 10) ======
   1000000 requests completed in 5.08 seconds
@@ -503,7 +498,6 @@
 99.99% <= 349 milliseconds
 100.00% <= 349 milliseconds
 32403.36 requests per second
-
 
 ====== PING_INLINE (pipeline 50) ======
   1000000 requests completed in 1.74 seconds
@@ -1277,7 +1271,6 @@
 99.99% <= 8088 milliseconds
 100.00% <= 8088 milliseconds
 36245.02 requests per second
-
 
 ====== PING_INLINE (pipeline 1) ======
   1000000 requests completed in 66.39 seconds
@@ -3178,7 +3171,6 @@
 100.00% <= 16701 milliseconds
 10370.75 requests per second
 
-
 ====== PING_INLINE (pipeline 10) ======
   1000000 requests completed in 7.88 seconds
   500 parallel clients
@@ -5053,7 +5045,6 @@
 100.00% <= 4072 milliseconds
 100.00% <= 4072 milliseconds
 28286.14 requests per second
-
 
 ====== PING_INLINE (pipeline 50) ======
   1000000 requests completed in 17.00 seconds
@@ -8167,7 +8158,6 @@
 100.00% <= 25817 milliseconds
 31175.96 requests per second
 
-
 ====== PING_INLINE (pipeline 1) ======
   1000000 requests completed in 76.66 seconds
   1000 parallel clients
@@ -10771,7 +10761,6 @@
 100.00% <= 93451 milliseconds
 100.00% <= 93451 milliseconds
 9304.84 requests per second
-
 
 ====== PING_INLINE (pipeline 10) ======
   1000000 requests completed in 8.72 seconds
@@ -14856,7 +14845,6 @@
 100.00% <= 22270 milliseconds
 100.00% <= 22270 milliseconds
 26834.11 requests per second
-
 
 ====== PING_INLINE (pipeline 50) ======
   1000000 requests completed in 2.49 seconds
@@ -20555,7 +20543,6 @@
 100.00% <= 29857 milliseconds
 29398.79 requests per second
 
-
 ====== PING_INLINE (pipeline 1) ======
   5000000 requests completed in 182.01 seconds
   10 parallel clients
@@ -20626,7 +20613,6 @@
 100.00% <= 202 milliseconds
 100.00% <= 202 milliseconds
 16266.88 requests per second
-
 
 ====== PING_INLINE (pipeline 10) ======
   5000000 requests completed in 21.90 seconds
@@ -20699,7 +20685,6 @@
 100.00% <= 218 milliseconds
 100.00% <= 218 milliseconds
 28692.59 requests per second
-
 
 ====== PING_INLINE (pipeline 50) ======
   5000000 requests completed in 7.76 seconds
@@ -20801,7 +20786,6 @@
 100.00% <= 237 milliseconds
 100.00% <= 237 milliseconds
 30172.29 requests per second
-
 
 ====== PING_INLINE (pipeline 1) ======
   5000000 requests completed in 205.81 seconds
@@ -20924,7 +20908,6 @@
 100.00% <= 20 milliseconds
 100.00% <= 20 milliseconds
 11224.45 requests per second
-
 
 ====== PING_INLINE (pipeline 10) ======
   5000000 requests completed in 25.04 seconds
@@ -21252,7 +21235,6 @@
 100.00% <= 848 milliseconds
 100.00% <= 848 milliseconds
 27433.79 requests per second
-
 
 ====== PING_INLINE (pipeline 50) ======
   5000000 requests completed in 8.61 seconds
@@ -22514,7 +22496,6 @@
 100.00% <= 8166 milliseconds
 100.00% <= 8166 milliseconds
 30106.70 requests per second
-
 
 ====== PING_INLINE (pipeline 1) ======
   5000000 requests completed in 316.07 seconds
@@ -26874,7 +26855,6 @@
 100.00% <= 23676 milliseconds
 100.00% <= 24506 milliseconds
 8823.98 requests per second
-
 
 ====== PING_INLINE (pipeline 10) ======
   5000000 requests completed in 39.41 seconds
@@ -31374,7 +31354,6 @@
 100.00% <= 10221 milliseconds
 100.00% <= 10221 milliseconds
 25485.37 requests per second
-
 
 ====== PING_INLINE (pipeline 50) ======
   5000000 requests completed in 11.45 seconds
@@ -37185,7 +37164,6 @@
 100.00% <= 82278 milliseconds
 100.00% <= 82278 milliseconds
 27958.73 requests per second
-
 
 ====== PING_INLINE (pipeline 1) ======
   5000000 requests completed in 385.64 seconds
