@@ -20,15 +20,16 @@
 
 
 \begin{abstract}
-Traditional web infrastructure models consist of a cluster of heavyweight full stack virtual machines usually running a variant of Linux.
-This provides a simple consistent platform for developers to write their applications against but running a full stack machine on top of a hypervisor has downsides, such as the resource overhead of a virtual machine.
-Key-value datastores are a common component of web infrastructure.
+Traditional web infrastructures consist of a cluster of virtual machines running a full operating system like Linux or a BSD variant.
+This provides a simple consistent platform for developers to write their applications against but running a full stack machine on top of hypervisors is understandable in an historical context but it is not neccesarily the most efficient.
+One downside for example is extra overhead that we propose can be eliminated.
+Key-value datastores are a common component of web infrastructure for various use cases, the most prominent one being Redis.
 Unikernels are specialized OS kernels that are written in a high-level language and act as individual software components.
-Unikernels allow restructuring of entire virtual machines into more modular components that are flexible, secure, and reusable in the style of a library operating systems. Applications can be developed and then compiled into unikernels using a toolchain, such as Mirage OS for example, and can be deployed directly on top of a Xen hypervisor.
+Unikernels allow restructuring of entire virtual machines into more modular components that are flexible, secure, and reusable in the style of a library operating systems.
+Applications can be developed and then compiled into unikernels using a toolchain, such as Mirage OS for example, and can be deployed directly on top of a Xen hypervisor.
 We've designed a Mirage OS\cite{mirage} unikernel implementation of the popular Redis\cite{redis} in-memory key-value store that allows fast creation and deployment of the datastore as well as ease scaling up the allocated resources.
 We describe the advantages and disadvantages that come with such a system.
 We highlight the performance characteristics of this new approach in comparison to Redis.
-
 Preliminary results showed lower-than-expected performance.
 We expect with more profiling and testing we can identify the hotspots in our codebase and garner better performance from the Keyvee implementation.
 \end{abstract}
@@ -206,6 +207,13 @@ Leveraging Mirage and OCaml guarantees type safety in both our application as we
 Because memory layout in Mirage is used to distinguish I/O pages, the OCaml garbage collector needs to scan less to be as effective as in a full stack OS, which let's the network stack perform predictably.
 Predictable performance, as well as support for zero-copy I/O makes Mirage's network stack more performant than traditional full stack OS.
 
+\begin{figure}[ht]
+  \centering
+  \caption{Example of RESP, Client asking Server for length of "mylist"}
+  \includegraphics[width=0.5\textwidth]{images/resp}
+\end{figure}
+
+
 \subsection{Redis implementation}
 
 As Redis is a full featured and working database implementation it goes through a lot of steps that Keyvee does not.
@@ -243,6 +251,12 @@ The recommendation for deployment of Redis is to put it behind a firewall, which
 This means Redis is vulnerable to buffer overflow and out of bounds errors for example which have been the main sources of vulnerabilities in server software, latest notable example being the Heartbleed bug.
 Meanwhile, Keyvee is completely memory safe and with addition of user access controls could be trusted enough to be fully exposed on the internet, which opens it up to a whole host of applications that Redis could only handle by having a server as a intermediary.
 For example, a mobile client could connect directly to Keyvee for data that needs no server processing instead of going through a intermediary server.
+
+\subsubsection{Immutable infrastructure}
+
+Unikernels are immutable applications that can be launched very quickly.
+
+TODO
 
 \subsection{Development process}
 
@@ -767,6 +781,12 @@ Our efforts are concentrated around implementing a subset of Redis's functionali
 We then evaluated our implementation and compared it with Redis using Redis's benchmarking tool.
 While similar, if not superior, throughput was generally achieved in tests having few parallel clients, a scaling issue was found when Keyvee was subjected to larger parallel loads, resulting in poor throughput.
 The main source of the low throughput was identified as an underlying issue with Mirage OS's difficulty in handling large numbers of multiple clients, however, we believe that this problem will be addressed as Xen, and unikernels as a whole, mature as a technology.
+
+\section{Lessons learned}
+TODO
+
+\section{Future work}
+TODO
 
 \section{Acknowledgements}
 We thank the kind souls in the \#Mirage IRC chatroom for their relentless patience.
