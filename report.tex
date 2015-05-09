@@ -92,6 +92,16 @@ Standard operating systems can be run on Xen with minimal changes to the codebas
 For applications running on a host, such as Linux, Xen has no impact on the implementation because all of the integrations are completed at the OS layer which interfaces with Xen hypervisor.
 This however means that there is an extra layer between the hardware and the applications running in a hypervised environment, and eliminating this layer is one of the goals of Mirage OS and our project.
 
+\begin{figure}[ht]
+  \centering
+  \caption{Example structure of a machine running the Xen hypervisor,
+hosting a number of different guest operating systems,
+including Domain0 running control software in a XenoLinux
+environment \cite{xen}}
+  \includegraphics[width=0.5\textwidth]{images/xen}
+\end{figure}
+
+
 \subsection{Redis}
 
 Redis is a type of database often called data structure server and is the most popular key-value store in industry\cite{dbengines}.
@@ -254,9 +264,10 @@ For example, a mobile client could connect directly to Keyvee for data that need
 
 \subsubsection{Immutable infrastructure}
 
-Unikernels are immutable applications that can be launched very quickly.
-
-TODO
+Immutable infrastructure consists of immutable components that are replaced in every deployment rather than being simply updated in place.
+Those components are started from an image that is built once per deployment and can then be tested and validated before being deployed.
+Traditionally, full stack operating systems are deployed to run applications and then updated regularly, but this can be unreliable as updates can break the running application.
+As Keyvee is a unikernel which are immutable applications, Keyvee can be a component in an immutable infrastructure.
 
 \subsection{Development process}
 
@@ -783,10 +794,16 @@ While similar, if not superior, throughput was generally achieved in tests havin
 The main source of the low throughput was identified as an underlying issue with Mirage OS's difficulty in handling large numbers of multiple clients, however, we believe that this problem will be addressed as Xen, and unikernels as a whole, mature as a technology.
 
 \section{Lessons learned}
-TODO
+The project was a great lesson and deepened our knowledge in low level operating systems constructs and virtualization.
+Due to features like high reliability and great tooling, OCaml can be a good tool to create systems software similar to Mirage OS.
+Lwt did not prove as mature as Kqueue and Epoll in our testing.
+There are some bugs present in the Unix implementation of Mirage, meaning one can not fully rely on compiling a Unix version of Mirage OS but highlights the need to build a Xen image for testing to get a true image of how the application would behave in production.
 
 \section{Future work}
-TODO
+Our project implements the basics of Redis which allowed us to evaluate the viability of our idea.
+Future work would include finishing implementing the rest of Redis's data structures and data operations, data persistance as well as some of the advanced features like clustering and replication.
+In addition to achieving Redis's featureset, there is potential in Keyvee to have additional features thanks to the unique development toolchain.
+An example is implementing user access control and other precautions that would allow Keyvee to expose a listening socket to the internet, allowing clients to connect directly to our database without intermediary server.
 
 \section{Acknowledgements}
 We thank the kind souls in the \#Mirage IRC chatroom for their relentless patience.
