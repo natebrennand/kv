@@ -79,7 +79,6 @@ It allows applications to communicate directly to both hard drives and network c
 
 \section{Background}
 
-
 \subsection{Xen Hypervisor}
 
 Xen is an open-source tool that originated as a research project at the University of Cambridge to allow a host to simultaneously host many virtual machines on the same physical host.
@@ -91,12 +90,13 @@ Standard operating systems can be run on Xen with minimal changes to the codebas
 For applications running on a host, such as Linux, Xen has no impact on the implementation because all of the integrations are completed at the OS layer which interfaces with Xen hypervisor.
 This however means that there is an extra layer between the hardware and the applications running in a hypervised environment, and eliminating this layer is one of the goals of Mirage OS and our project.
 
-
 \subsection{Redis}
 
-Redis is a type of database called data structure server and is the most popular key-value store in industry\cite{dbengines}.
-Redis maps keys to various types of values, including strings (supported by Keyvee) as well as lists, sets, hash tables and various other data structures.
-Its working set and all of its data is in-memory at all times, allowing for fast data storage and retrieval but there is also optional durability using append-only log files.
+Redis is a type of database often called data structure server and is the most popular key-value store in industry\cite{dbengines}.
+Redis maps keys to various types of values, including strings (supported by Keyvee) as well as lists, sets, bitmaps, sorted sets, hash tables and various other data structures.
+Its working set and all of its data is in-memory at all times allowing for fast data storage and retrieval.
+There is also optional durability either writing the dataset to disk every now and then or using append-only log files.
+Redis supports atomic operations on the types it supports, so for example it has commands to append to string and increment stored integers.
 Redis is widely used and has various applications in server infrastructure, examples include:
 
 \begin{itemize}
@@ -109,16 +109,23 @@ Redis is widely used and has various applications in server infrastructure, exam
 Redis has support for master-slave replication, and allows slaves to be masters to other slaves, enabling Redis to implement single-rooted replication tree.
 Redis also has support for clustering as of version 3.0.
 When durability is not needed, Redis is very performant, although according to tests it has been shown to spend upward of 84\% of it's processing in kernel space, meaning there is space to improve its performance by decreasing time spent and increasing performance in the OS layer \cite{latency}.
+Redis is written in ANSI C and works in most POSIX systems without external dependencies but Linux is recommended for deployment. \cite{redisintroduction}.
 
 \subsection{Unikernels}
 
-TODO
+In todays real world deployments, Virtual Machines normally contain a full operating-system image like Linux hosting a primary application in user space, for example Redis or PostgreSQL, along with supporting services like syslog or NTP running concurrently.
+So although most of these VMs contain flexible layers of software, most of them ultimately perform a single function like acting as a host for database for example.
+Since the layers that form these VM contain a lot of unused extranous software, there is a opportunity for optimization both in terms of performance by adapting a OS to the task it's performing and removing extranous layers and also by improving security by reducing redundant software, making VM's attack surface smaller.
+Modern hypervisors like Xen provide resource multiplexing, becoming more advanced with special virtualization features being developed and supported by new hardware.
+By reimplementing some core low level features of traditional operating systems like the TCP/IP stack and a file-system interface and using modern hypervisors to manage resources and provide seperation between VM's, we can implement unikernels.
 
 \subsection{Mirage OS}
 
-Mirage OS is an OCaml-based library operating system that originated from the Xen Project. It allows you to compile applications directly to a Xen hypervisor image, meaning you can run said applications directly on top of a Xen hypervisor without an intermediary operating system.
+Mirage OS is an OCaml-based library operating system that originated from the Xen Project.
+It allows you to compile applications directly to a Xen hypervisor image thereby creating a unikernel, meaning you can run said applications directly on top of a Xen hypervisor without an intermediary operating system.
 This approach yields several performance, implementation and security benefits.
-Mirage applications are entirely type-safe due to the strong typing of OCaml and the projects effort to reimplemented frameworks such as TCP/IP and SSL to have end-to-end type safety in the Mirage OS stack. They also have a very compact size due to the lack of structural libraries that must be included.
+Mirage applications are entirely type-safe due to the strong typing of OCaml and the projects effort to reimplemented frameworks such as TCP/IP and SSL to have end-to-end type safety in the Mirage OS stack.
+They also have a very compact size due to the lack of structural libraries that must be included.
 With the elimination of an operating system interface layer, Mirage applications achieve top-notch performance as there is no additional layer in the IO pipeline or scheduler to delay the application's execution.
 
 \begin{figure}[ht]
@@ -151,10 +158,12 @@ This aspect, combined with the type-safety OCaml provides eliminates entire clas
 
 
 \section{Design and Implementation}
+
 For Keyvee we have the following goals:
+
 \begin{itemize}
   \item Implement subset of Redis functionality in OCaml on top of the Mirage OS toolchain.
-  \item Make Keyvee as compatible to Redis as possible and hopefully a drop-in replacement for most purposes.
+  \item Make Keyvee as compatible to Redis as possible and a drop-in replacement for most purposes.
   \item Implement RESP, Redis's protocol specification, to allow interoperability with existing tools and libraries.
 \end{itemize}
 
@@ -192,7 +201,7 @@ The parse functions fully support well formed queries for our supported function
 After the parse phase, the data is handed off to the Hashtbl module which responds with data or writes data.
 The response is then written to the client in RESP compatible format.
 
-\subsection{LWT}
+\subsection{Lwt}
 
 Mirage uses the Lwt, cooperative threading library, extensively and every request is wrapped in a lightweight cooperative thread. Leveraging Mirage and OCaml guarantees type safety in both our application as well as in the implementations of frameworks underlying the application such as the TCP/IP stack, enhancing the security of our implementation.
 
