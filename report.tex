@@ -132,9 +132,9 @@ Redis is written in ANSI C and works in most POSIX systems without external depe
 
 In todays real world deployments, Virtual Machines normally contain a full operating-system image like Linux hosting a primary application in user space, for example Redis or PostgreSQL, along with supporting services like syslog or NTP running concurrently.
 So although most of these VMs contain flexible layers of software, most of them ultimately perform a single function like acting as a host for database for example.
-Since the layers that form these VM contain a lot of unused extranous software, there is a opportunity for optimization both in terms of performance by adapting a OS to the task it's performing and removing extranous layers and also by improving security by reducing redundant software, making VM's attack surface smaller.
+Since the layers that form these VM contain a lot of unused extraneous software, there is a opportunity for optimization both in terms of performance by adapting a OS to the task it's performing and removing extraneous layers and also by improving security by reducing redundant software, making VM's attack surface smaller.
 Modern hypervisors like Xen provide resource multiplexing, becoming more advanced with special virtualization features being developed and supported by new hardware.
-By reimplementing some core low level features of traditional operating systems like the TCP/IP stack and a file-system interface and using modern hypervisors to manage resources and provide seperation between VM's, we can implement unikernels.
+By reimplementing some core low level features of traditional operating systems like the TCP/IP stack and a file-system interface and using modern hypervisors to manage resources and provide separation between VM's, we can implement unikernels.
 
 \subsection{Mirage OS}
 
@@ -158,7 +158,7 @@ As highlighted in Figure 1, unikernels have a greatly reduced overhead when acce
 This approach brings some great benefits like zero-copy IO and no scheduler-induced delay in response.
 These performance improvements are important in high throughput and low latency applications like key-value datastores.
 However, this approach does have downfalls such as Mirage's limit to a single virtual machine per core; this limitation means that certain applications that require access to multiple physical threads will not fit the Mirage programming model.
-For applications that do not need multiple physical threads but need asynchronous IO, Mirage has a lightweight cooperative threading, LWT, library that provides simple constructs for asynchronous code.
+For applications that do not need multiple physical threads but need asynchronous IO, Mirage has a lightweight cooperative threading, Lwt, library that provides simple constructs for asynchronous code.
 
 Simple experiments with Mirage have proven that competitive performance to native C applications is not difficult to achieve.
 For example, a Mirage DNS server implementation outperformed the standard Bind9 and NSD servers by 14\% in raw throughput in testing.
@@ -213,7 +213,7 @@ While it hinders parallelism in CPU bound applications, it's perfect for an I/O 
 
 At startup, our hashtable is initialized and the server is prepared to receive connections. An Lwt event loop is setup and a listening socket is opened on 6379, Redis's default port.
 We use Mirage OS's low level TCP/IP network stack which is implemented in pure OCaml.
-When a client attemps to connect, a lightweight Lwt thread is spawned and our command handler commences parsing the RESP string.
+When a client attempts to connect, a lightweight Lwt thread is spawned and our command handler commences parsing the RESP string.
 When the command has been parsed, either an error is issued if the command is nonsensical or the corresponding internal command is called and return value is encoded back to RESP and sent to the client.
 The parse functions fully support well formed queries for our supported functions, but lack some verification steps and will not respond to badly formed queries.
 Depending on which internal commands is called, it interfaces with our Hashtbl module to retrieve or write data.
@@ -238,12 +238,12 @@ One such optimization is a pool of shared objects that is created when the serve
 The shared objects are for constant replies like PONG and also include allocations for the first integers. \cite{redisunderthehood}
 Redis then creates a event loop, using epoll on Linux and kqueue on BSD and falls back to select if those are not available.
 This is what makes Redis so responsive and allows it to be single threaded but still serve thousands of clients simultaneously, and is comparable to what Lwt and the Lwt event engine does for Keyvee.
-After setting up the event loop, Redis further initalizes databases (it has support for multiple databases), TCP listening socket, sets up a server cron function which is called every 100 milliseconds and handles misc administrative tasks and finally registers a connection handler with the event loop and opens an append-only file if configured to do so.
-Redis accepts connections in the event loop using standard POSIX methods, and as RESP is a ASCII based protocol it parses strings to process the commands similarily to how Keyvee does this, albeit it in a very efficient manner.
+After setting up the event loop, Redis further initializes databases (it has support for multiple databases), TCP listening socket, sets up a server cron function which is called every 100 milliseconds and handles misc administrative tasks and finally registers a connection handler with the event loop and opens an append-only file if configured to do so.
+Redis accepts connections in the event loop using standard POSIX methods, and as RESP is a ASCII based protocol it parses strings to process the commands similarly to how Keyvee does this, albeit it in a very efficient manner.
 After parsing the command string, the command is looked up in the internal command table and it's executed.
 Write commands such as SET make the server have dirty data so the server is marked as having pages in memory that have changed.
 This is then used during the automatic save process and append-only log file writing process.
-Redis has some strategies to minimize latency and roundtrips, for example pipelining which is when multiple commands are sent at once to the server, without waiting for acknowledgement or responses for earlier commands.
+Redis has some strategies to minimize latency and roundtrips, for example pipelining which is when multiple commands are sent at once to the server, without waiting for acknowledgment or responses for earlier commands.
 This is a good strategy and is adopted by Keyvee as well, but we believe that the approach of moving the key-value datastore to a unikernel implementation will yield even greater and more reliable performance.
 
 
@@ -257,7 +257,7 @@ Although our current test implementation did not exceed Redis's implementation u
 
 \subsubsection{Security}
 
-There are two security aspects of Mirage OS that are pertinant to our Keyvee implementation.
+There are two security aspects of Mirage OS that are pertinent to our Keyvee implementation.
 By only compiling Keyvee into a OS image, a lot of extra services and weak points in traditional OS's are not run, and so with a smaller attack surface certain kinds of vulnerabilities are eliminated.
 In addition to minimizing the attack surface, Mirage OS applications are end-to-end memory safe because OCaml's runtime manages memory allocation and reclaims memory with a mature garbage collector.
 That means from the TCP/IP stack, up to SSL and the application code, everything is compiled using a memory-safe language which guarantees that Keyvee is completely memory safe.
@@ -320,7 +320,7 @@ Except for one of the implemented commands, Keyvee performed just as well, if no
 However, Keyvee's throughput decreased logarithmically as the number of simultaneous clients increased, while Redis would only have a slight linear decrease, if at all.
 This meant that Keyvee would usually have consistently lower throughput than Redis after a certain low threshold, with some variance between commands.
 Upon further examination of the code and testing, it was found that the overhead from the light-weight threads used by Mirage to handle simultaneous connections resulted in the severely reduced throughput.
-With regards to the latency, each test showed a similar pattern, with Keyvee tending to have a much wider distribution, caused mainly by having a low number of commands taking an extradordinary amount of time.
+With regards to the latency, each test showed a similar pattern, with Keyvee tending to have a much wider distribution, caused mainly by having a low number of commands taking an extraordinary amount of time.
 
 \subsection{SET Command}
 
@@ -801,7 +801,7 @@ The main source of the low throughput was identified as an underlying issue with
 \section{Lessons learned}
 The project was a great lesson and deepened our knowledge in low level operating systems constructs and virtualization.
 Due to features like high reliability and great tooling, OCaml can be a good tool to create systems software similar to Mirage OS.
-Lwt did not prove as mature as Kqueue and Epoll in our testing.
+Lwt did not prove as mature as kqueue and epoll in our testing.
 There are some bugs present in the Unix implementation of Mirage, meaning one can not fully rely on compiling a Unix version of Mirage OS but highlights the need to build a Xen image for testing to get a true image of how the application would behave in production.
 
 \section{Future work}
