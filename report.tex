@@ -193,18 +193,20 @@ We have an internal module implementation built on top of OCaml's Hashtbl module
 We use a hash table with a seeded hash function, using a seed randomly chosen at hash table creation time.
 This means the hash function is randomly selected among 230 different hash functions with different collision patterns which helps stop denial-of-service attacks where attackers can send input crafted to create collisions, slowing our application to a halt.
 
-We use Mirage OS's low level TCP/IP network stack implemented in pure OCaml.
+Mirage OS has support for the Lwt library which we use extensively, allowing us to support concurrent clients.
+Lwt is a cooperative threading library supporting very lightweight threads that cannot be preempted and do not need a new stack or a new process like traditional threads.
+While it hinders parallelism in CPU bound applications, it's perfect for an I/O bound application like Keyvee.
+
+At startup, our hashtable is initialized and the server is prepared to receive connections. An Lwt event loop is setup and a listening socket is opened on 6379, Redis's default port.
+We use Mirage OS's low level TCP/IP network stack which is implemented in pure OCaml.
+When a client attemps to connect, a lightweight Lwt thread is spawned and our command handler commences parsing the RESP string.
+When the command has been parsed, either an error is issued if the command is nonsensical or the corresponding internal command is called and return value is encoded back to RESP and sent to the client.
+The parse functions fully support well formed queries for our supported functions, but lack some verification steps and will not respond to badly formed queries.
+Depending on which internal commands is called, it interfaces with our Hashtbl module to retrieve or write data.
+
+Leveraging Mirage and OCaml guarantees type safety in both our application as well as in the implementations of frameworks underlying the application such as the TCP/IP stack, enhancing the security of our implementation.
 Because memory layout in Mirage is used to distinguish I/O pages, the OCaml garbage collector needs to scan less to be as effective as in a full stack OS, which let's the network stack perform predictably.
 Predictable performance, as well as support for zero-copy I/O makes Mirage's network stack more performant than traditional full stack OS.
-The network stack then hands off the raw data to our parse functions, which parse the data using string operations.
-The parse functions fully support well formed queries for our supported functions, but lack some verification steps and will not respond to badly formed queries.
-After the parse phase, the data is handed off to the Hashtbl module which responds with data or writes data.
-The response is then written to the client in RESP compatible format.
-
-\subsection{Lwt}
-
-Mirage uses the Lwt, cooperative threading library, extensively and every request is wrapped in a lightweight cooperative thread. Leveraging Mirage and OCaml guarantees type safety in both our application as well as in the implementations of frameworks underlying the application such as the TCP/IP stack, enhancing the security of our implementation.
-
 
 \subsection{Redis implementation}
 
@@ -212,16 +214,17 @@ As Redis is a full featured and working database implementation it goes through 
 It starts by initializing a server state structure, which is where it stores configuration information such as the port it is running on, database files, replication, sort parameters and various other data.
 Redis is a well written and organized project and the codebase is straightforward to read despite all the optimizations present.
 One such optimization is a pool of shared objects that is created when the server initializes which decreases allocations needed.
-The shared objects are for constant replies like PONG and also include allocations for the first integers.
+The shared objects are for constant replies like PONG and also include allocations for the first integers. \cite{redisunderthehood}
 Redis then creates a event loop, using epoll on Linux and kqueue on BSD and falls back to select if those are not available.
-This is what makes Redis so responsive and allows it to be single threaded but still serve thousands of clients simultaneously, and is comparable to what LWT and the LWT event engine does for Keyvee.
+This is what makes Redis so responsive and allows it to be single threaded but still serve thousands of clients simultaneously, and is comparable to what Lwt and the Lwt event engine does for Keyvee.
 After setting up the event loop, Redis further initalizes databases (it has support for multiple databases), TCP listening socket, sets up a server cron function which is called every 100 milliseconds and handles misc administrative tasks and finally registers a connection handler with the event loop and opens an append-only file if configured to do so.
-Redis accepts connections in the event loop using standard POSIX methods, and as RESP is a ASCII based protocol it parses strings to process the commands similarily to how Keyvee does this, albeit it does it in a very efficient manner.
+Redis accepts connections in the event loop using standard POSIX methods, and as RESP is a ASCII based protocol it parses strings to process the commands similarily to how Keyvee does this, albeit it in a very efficient manner.
 After parsing the command string, the command is looked up in the internal command table and it's executed.
 Write commands such as SET make the server have dirty data so the server is marked as having pages in memory that have changed.
 This is then used during the automatic save process and append-only log file writing process.
+Redis has some strategies to minimize latency and roundtrips, for example pipelining which is when multiple commands are sent at once to the server, without waiting for acknowledgement or responses for earlier commands.
+This is a good strategy and is adopted by Keyvee as well, but we believe that the approach of moving the key-value datastore to a unikernel implementation will yield even greater and more reliable performance.
 
-TODO: Clean up
 
 \subsection{Benefits}
 
@@ -242,8 +245,6 @@ The recommendation for deployment of Redis is to put it behind a firewall, which
 This means Redis is vulnerable to buffer overflow and out of bounds errors for example which have been the main sources of vulnerabilities in server software, latest notable example being the Heartbleed bug.
 Meanwhile, Keyvee is completely memory safe and with addition of user access controls could be trusted enough to be fully exposed on the internet, which opens it up to a whole host of applications that Redis could only handle by having a server as a intermediary.
 For example, a mobile client could connect directly to Keyvee for data that needs no server processing instead of going through a intermediary server.
-
-TODO: CLEAN UP
 
 \subsection{Development process}
 
