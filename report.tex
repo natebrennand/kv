@@ -435,7 +435,7 @@ legend style={at={(0.5,-0.2)}, anchor=north}]
 	\caption{SET Latency w/o pipelining\label{fig:SET_L}}
 \end{figure}
 
-As seen in \ref{fig:SET_T}, without pipelining, SET throughput was roughly equal when there were few concurrent clients, but as pipelining increased, Keyvee's throughput improved significantly. 
+As seen in \ref{fig:SET_T}, without pipelining, SET throughput was roughly equal when there were few concurrent clients, but as pipelining increased, Keyvee's throughput improved significantly.
 However, gains from pipelining would be eventually offset by the scaling issues of handling concurrent clients.
 Interestingly, at a pipeline length of 10 the biggest difference in scaling was found, since the benefits for a 50-long pipeline managed to maintain Keyvee's throughput somewhat.
 When comparing latency of the commands, Keyvee's latency only slightly behind Redis, but as the number of concurrent clients grew, the disparity in latency grew wider.
@@ -551,8 +551,9 @@ legend style={at={(0.5,-0.2)}, anchor=north}]
 	\end{tikzpicture}
 	\caption{MSET Latency w/o pipelining\label{fig:MSET_L}}
 \end{figure}
+
 Compared to SET, MSET is slightly more complex and time consuming command, resulting in lower throughput for both applications, as seen in Figure \ref{fig:MSET_T}.
-It was here that Keyvee always had a lower throughput than Redis, even at low number of concurrent clients. 
+It was here that Keyvee always had a lower throughput than Redis, even at low number of concurrent clients.
 The disparity in performance became increasingly dramatic as the pipeline length increased and was one of the few areas where pipelining's scaling with Keyvee had little effect.
 Most notable how severe diminishing returns pipelining had on both applications; the difference between a pipeline of 10 and 50 was very small, even more so when looking at Keyvee.
 As with the SET command, Keyvee's latency became increasingly greater as the number of connected clients increased.
@@ -811,8 +812,10 @@ In addition to achieving Redis's featureset, there is potential in Keyvee to hav
 An example is implementing user access control and other precautions that would allow Keyvee to expose a listening socket to the internet, allowing clients to connect directly to our database without intermediary server.
 
 \section{Acknowledgements}
-We thank the kind souls in the \#Mirage IRC chatroom for their relentless patience.
-Their assistance was crucial in learning how to use Mirage's utilities and leverage the provided standard library.
+
+
+We thank the kind souls in the \#Mirage and \#Xen IRC chatroom for their relentless patience.
+Their assistance was crucial in learning how to use Mirage's utilities and leverage the provided standard library as well as learning how to actually launch our completed product on Xen.
 
 
 
