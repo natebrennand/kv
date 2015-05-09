@@ -26,7 +26,7 @@ Mishail Tupas\\mlt2156@columbia.edu}
 
 \begin{abstract}
 Traditional web infrastructures consist of a cluster of virtual machines running a full operating system like Linux or a BSD variant.
-This provides a simple consistent platform for developers to write their applications against but running a full stack machine on top of hypervisors is understandable in an historical context but it is not neccesarily the most efficient.
+This provides a simple consistent platform for developers to write their applications against but running a full stack machine on top of hypervisors is understandable in an historical context but it is not necessarily the most efficient.
 One downside for example is extra overhead that we propose can be eliminated.
 Key-value datastores are a common component of web infrastructure for various use cases, the most prominent one being Redis.
 Unikernels are specialized OS kernels that are written in a high-level language and act as individual software components.
@@ -244,7 +244,7 @@ Redis accepts connections in the event loop using standard POSIX methods, and as
 After parsing the command string, the command is looked up in the internal command table and it's executed.
 Write commands such as SET make the server have dirty data so the server is marked as having pages in memory that have changed.
 This is then used during the automatic save process and append-only log file writing process.
-Redis has some strategies to minimize latency and roundtrips, for example pipelining which is when multiple commands are sent at once to the server, without waiting for acknowledgment or responses for earlier commands.
+Redis has some strategies to minimize latency and round trips, for example pipelining which is when multiple commands are sent at once to the server, without waiting for acknowledgment or responses for earlier commands.
 This is a good strategy and is adopted by Keyvee as well, but we believe that the approach of moving the key-value datastore to a unikernel implementation will yield even greater and more reliable performance.
 
 
@@ -790,7 +790,7 @@ This resulted in results that broke the usual performance patterns, shown in Fig
 Most notably, while it still showed the logarithmic performance loss like all the other commands, the tests done with a pipeline size of 50 showed Keyvee consistently having a much higher throughput than Redis.
 However, at shorter pipeline stages, the performance of PING for both applications were none too different than their performance with SET.
 Similarly, the latency at short pipeline sizes was unremarkable.
-However, as shown in Figure \ref{fig:PING_L}, at the larger pipeline sizes, Keyve was found to have a more gradual distribution curve, verses Redis' steep cliffs.
+However, as shown in Figure \ref{fig:PING_L}, at the larger pipeline sizes, Keyve was found to have a more gradual distribution curve, verses Redis's steep cliffs.
 Furthermore, Keyvee had less commands that took an extreme amount of time when compared to the other command types.
 
 \section{Conclusion}
@@ -808,9 +808,9 @@ There are some bugs present in the Unix implementation of Mirage, meaning one ca
 
 \section{Future work}
 Our project implements the basics of Redis which allowed us to evaluate the viability of our idea.
-Future work would include finishing implementing the rest of Redis's data structures and data operations, data persistance as well as some of the advanced features like clustering and replication.
-In addition to achieving Redis's featureset, there is potential in Keyvee to have additional features thanks to the unique development toolchain.
-An example is implementing user access control and other precautions that would allow Keyvee to expose a listening socket to the internet, allowing clients to connect directly to our database without intermediary server.
+Future work would include finishing implementing the rest of Redis's data structures and data operations, data persistence as well as some of the advanced features like clustering and replication.
+In addition to achieving Redis's feature set, there is potential in Keyvee to have additional features thanks to the unique development toolchain.
+An example is implementing user access control and other precautions that would allow Keyvee to expose a listening socket to the Internet, allowing clients to connect directly to our database without intermediary server.
 
 \section{Acknowledgements}
 
