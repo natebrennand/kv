@@ -235,10 +235,11 @@ As Redis is a full featured and working database implementation it goes through 
 It starts by initializing a server state structure, which is where it stores configuration information such as the port it is running on, database files, replication, sort parameters and various other data.
 Redis is a well written and organized project and the codebase is straightforward to read despite all the optimizations present.
 One such optimization is a pool of shared objects that is created when the server initializes which decreases allocations needed.
-The shared objects are for constant replies like PONG and also include allocations for the first integers. \cite{redisunderthehood}
+The shared objects are for constant replies like PONG and also include allocations for the first 10,000 integers in RESP form. \cite{redisunderthehood}
 Redis then creates a event loop, using epoll on Linux and kqueue on BSD and falls back to select if those are not available.
 This is what makes Redis so responsive and allows it to be single threaded but still serve thousands of clients simultaneously, and is comparable to what Lwt and the Lwt event engine does for Keyvee.
 After setting up the event loop, Redis further initializes databases (it has support for multiple databases), TCP listening socket, sets up a server cron function which is called every 100 milliseconds and handles misc administrative tasks and finally registers a connection handler with the event loop and opens an append-only file if configured to do so.
+
 Redis accepts connections in the event loop using standard POSIX methods, and as RESP is a ASCII based protocol it parses strings to process the commands similarly to how Keyvee does this, albeit it in a very efficient manner.
 After parsing the command string, the command is looked up in the internal command table and it's executed.
 Write commands such as SET make the server have dirty data so the server is marked as having pages in memory that have changed.
