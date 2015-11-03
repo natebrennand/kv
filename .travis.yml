@@ -1,8 +1,8 @@
 language: c
 env:
-    - OCAML_VERSION=4.01.0 OPAM_VERSION=1.2.0
+- OCAML_VERSION=4.01.0 OPAM_VERSION=1.2.0
 before_script:
-    - bash -ex config/travis_install.sh
+- bash -ex config/travis_install.sh
 script:
-    - mirage configure --unix
-    - mirage buil
+- mirage configure --unix
+- mirage build
